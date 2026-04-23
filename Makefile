@@ -1,7 +1,5 @@
 CPP = c++
-# CPP_FLAGS = -Wall -Werror -Wextra -std=c++98
-CPP_FLAGS = -Wall -Werror -Wextra -std=c++98 -DDEBUG
-CPP_FLAGS = 
+CPP_FLAGS = -std=c++20 -DDEBUG
 
 PROGRAM_NAME = scop
 
