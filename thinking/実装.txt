@@ -1,0 +1,44 @@
+1. glfwを初期化
+2. windowを作成
+3. コンテキストにwindow設定
+4. ゲームループ開始
+5. イベントの設定
+6. 図形の描画
+7. メモリ開放、プログラム終了
+
+
+- AI作成
+
+**実装タスク（詳解）**
+- **初期化**: 
+  - `glfwInit()` を呼び成功を確認し、エラーハンドラを `glfwSetErrorCallback()` で登録。
+  - 必要な `glfwWindowHint()` をここで設定。
+- **ウィンドウ作成**: 
+  - `glfwCreateWindow(width,height,"title",monitor,share)` を呼び、
+  - 戻り値が `NULL` でないことを確認。失敗時は適切に終了。
+- **コンテキスト設定**: 
+  - `glfwMakeContextCurrent(window)`、オプションで `glfwSwapInterval(1)`。
+  - OpenGL 関数ローダ（`glad` / `GLEW` 等）を `glfwGetProcAddress` 経由で初期化。
+- **ユーザーポインタとコールバック設定**: 
+  - `glfwSetWindowUserPointer(window, this)` で `Window` インスタンスを保存。  
+  - コールバックは静的関数で受け、`glfwGetWindowUserPointer()` で `this` を取り出して
+  - メンバ呼び出しに転送するパターンを採る（例: `KeyCallbackStatic` → `self->onKey(...)`）。  
+  - 必要なコールバック: 
+    - `glfwSetKeyCallback`, `glfwSetFramebufferSizeCallback`, 
+    - `glfwSetCursorPosCallback`, `glfwSetMouseButtonCallback` など。
+- **レンダリング資源の初期化**: 
+  - シェーダコンパイル、VAO/VBO、テクスチャ、
+  - ユニフォーム初期化など。リソース作成はコンテキストが current の状態で行う。
+- **ゲームループとイベント処理**: 
+  - ループ条件: 
+    - `while (!glfwWindowShouldClose(window))`。  
+  - 各フレームで `glfwPollEvents()`（または `glfwWaitEventsTimeout()`）、
+  - 状態更新、描画コマンド、`glfwSwapBuffers(window)` の順で実行。  
+  - 固定タイムステップやFPS制御が必要ならここで実装。
+- **終了処理と解放**: 
+  - GL リソース削除（`glDelete*`）、`glfwDestroyWindow(window)`、
+  - `glfwTerminate()`。必要ならカスタムアロケータでの解放やログ出力。
+
+【考える観点】
+- リソース開放は、cppのデストラクタを効率的に使いたい
+- 
