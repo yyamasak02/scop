@@ -39,8 +39,8 @@ int main()
     while(!glfwWindowShouldClose(window)) {
         check_if_close_window(window);
 
-        glfwSwapBuffers(window);
         glfwPollEvents();
+        glfwSwapBuffers(window);
     }
     glfwTerminate();
     return 0;
