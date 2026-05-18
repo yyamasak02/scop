@@ -14,6 +14,18 @@ void check_if_close_window(GLFWwindow* window) {
     return;
 }
 
+void render_triangle() {
+    float vertices[] = {
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        0.0f,  0.5f, 0.0f
+    }; 
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);  
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+}
+
 int main()
 {
     glfwInit();
@@ -38,6 +50,9 @@ int main()
 
     while(!glfwWindowShouldClose(window)) {
         check_if_close_window(window);
+
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         glfwPollEvents();
         glfwSwapBuffers(window);
