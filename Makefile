@@ -1,29 +1,45 @@
 CPP = c++
 CPP_FLAGS = -std=c++20 -DDEBUG
 
-PROGRAM_NAME = scop
+# Programs to build
+PROGRAMS := scop ex01 ex02 ex03 sample
 
 SRCDIR := ./srcs
 INCDIR := ./includes
-
-SRC := $(wildcard $(SRCDIR)/*.cpp) 
 
 INCLUDES := -I$(INCDIR)
 
 LIBS	 := -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lm
 
 OBJDIR := objs
-OBJS := $(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
-all: $(PROGRAM_NAME)
+# Find sources (maxdepth 2 to include immediate subdirs like ex01)
+ALL_SRCS := $(shell find $(SRCDIR) -maxdepth 2 -name '*.cpp')
 
-$(PROGRAM_NAME): $(OBJS)
+all: $(PROGRAMS)
+
+# Root program (scop) uses .cpp files directly under srcs/
+scop: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/*.cpp))
+	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
+
+ex01: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex01/*.cpp))
+	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
+
+ex02: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex02/*.cpp))
+	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
+
+ex03: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex03/*.cpp))
+	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
+
+sample: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/sample/*.cpp))
 	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
 $(OBJDIR):
 	@mkdir -p $(OBJDIR)
 
+# Generic rule: create object file under objs/... mirroring srcs/...
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
+	@mkdir -p $(dir $@)
 	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ -c $<
 
 install:
@@ -39,8 +55,8 @@ clean:
 	rm -rf $(OBJDIR)
 
 fclean: clean
-	rm -f $(PROGRAM_NAME)
+	rm -f $(PROGRAMS)
 
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re install $(PROGRAMS)
