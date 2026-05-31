@@ -4,5 +4,6 @@
         {
             "file": ".github/commit-instructions.md"
         }
-    ]
+    ],
+    "editor.formatOnSave": true
 }
