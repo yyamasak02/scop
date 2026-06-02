@@ -1,9 +1,9 @@
 {
     "cSpell.enabled": false,
+    "editor.formatOnSave": true,
     "github.copilot.chat.commitMessageGeneration.instructions": [
         {
             "file": ".github/commit-instructions.md"
         }
     ],
-    "editor.formatOnSave": true
 }

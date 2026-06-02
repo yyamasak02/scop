@@ -1,5 +1,7 @@
-#include <GLFW/glfw3.h>
+// clang-format off
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
+// clang-format on
 
 #include <cstdlib>
 #include <iostream>
@@ -104,8 +106,12 @@ int main() {
   // ------------------------------------------------------------------
   float vertices[] = {
       -0.5f, -0.5f, 0.0f,  // left
-      0.5f,  -0.5f, 0.0f,  // right
-      0.0f,  0.5f,  0.0f   // top
+      0.5f, -0.5f, 0.0f,   // right
+      0.0f, 0.5f, 0.0f,    // top
+                           // second triangle
+      0.0f, -0.5f, 0.0f,   // left
+      0.9f, -0.5f, 0.0f,   // right
+      0.45f, 0.5f, 0.0f    // top
   };
 
   unsigned int VBO, VAO;
@@ -113,11 +119,15 @@ int main() {
   glGenBuffers(1, &VBO);
   // bind the Vertex Array Object first, then bind and set vertex buffer(s), and
   // then configure vertex attributes(s).
+  // see
+  // https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBindVertexArray.xhtml
   glBindVertexArray(VAO);
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+  // see
+  // https://registry.khronos.org/OpenGL-Refpages/gl4/html/glVertexAttribPointer.xhtml
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
 
@@ -152,7 +162,7 @@ int main() {
     glBindVertexArray(VAO);  // seeing as we only have a single VAO there's no
                              // need to bind it every time, but we'll do so to
                              // keep things a bit more organized
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
     // glBindVertexArray(0); // no need to unbind it every time
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved
