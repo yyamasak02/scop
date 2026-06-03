@@ -18,9 +18,10 @@ const unsigned int SCR_HEIGHT = 600;
 const char* vertexShaderSource =
     "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
+    "uniform float offsetX; \n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "   gl_Position = vec4(aPos.x + offsetX, aPos.y, aPos.z, 1.0);\n"
     "}\0";
 const char* fragmentShaderSource =
     "#version 330 core\n"
@@ -92,6 +93,7 @@ int main() {
   glAttachShader(shaderProgram, vertexShader);
   glAttachShader(shaderProgram, fragmentShader);
   glLinkProgram(shaderProgram);
+  int offsetXLocation = glGetUniformLocation(shaderProgram, "offsetX");
   // check for linking errors
   glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
   if (!success) {
@@ -161,6 +163,7 @@ int main() {
 
     // draw our first triangle
     glUseProgram(shaderProgram);
+    glUniform1f(offsetXLocation, 0.5f);
     glBindVertexArray(VAO[0]);  // seeing as we only have a single VAO there's
                                 // no need to bind it every time, but we'll do
                                 // so to keep things a bit more organized
