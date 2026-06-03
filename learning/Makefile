@@ -2,7 +2,7 @@ CPP = c++
 CPP_FLAGS = -std=c++20 -DDEBUG
 
 # Programs to build
-PROGRAMS := scop ex01 ex02 ex03 sample
+PROGRAMS := scop 3_ex01 3_ex02 3_ex03 sample
 
 SRCDIR := ./srcs
 INCDIR := ./includes
@@ -22,13 +22,13 @@ all: $(PROGRAMS)
 scop: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/*.cpp))
 	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
-ex01: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex01/*.cpp))
+3_ex01: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/3_ex01/*.cpp))
 	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
-ex02: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex02/*.cpp))
+3_ex02: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/3_ex02/*.cpp))
 	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
-ex03: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex03/*.cpp))
+3_ex03: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/3_ex03/*.cpp))
 	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
 sample: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/sample/*.cpp))
