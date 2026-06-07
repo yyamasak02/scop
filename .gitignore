@@ -2,6 +2,8 @@
 scop
 objs/
 *.exe
+glm-1.0.3
+glm
 
 # Prerequisites
 *.d
