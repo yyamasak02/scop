@@ -1,6 +1,7 @@
 #individual
 scop
 objs/
+*.exe
 
 # Prerequisites
 *.d

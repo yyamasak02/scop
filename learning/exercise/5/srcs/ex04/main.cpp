@@ -8,7 +8,7 @@
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window, float& mixValue);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -54,10 +54,10 @@ int main() {
   // ------------------------------------------------------------------
   float vertices[] = {
       // positions          // colors           // texture coords
-      0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 2.0f,  // top right
+      0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top right
       0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
       -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom left
-      -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 2.0f   // top left
+      -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left
   };
   unsigned int indices[] = {
       0, 1, 3,  // first triangle
@@ -98,9 +98,9 @@ int main() {
   glBindTexture(GL_TEXTURE_2D, texture1);
   // set the texture wrapping parameters
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                  GL_CLAMP_TO_EDGE);  // set texture wrapping to GL_REPEAT
-                                      // (default wrapping method)
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                  GL_REPEAT);  // set texture wrapping to GL_REPEAT (default
+                               // wrapping method)
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   // set texture filtering parameters
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -126,9 +126,9 @@ int main() {
   glBindTexture(GL_TEXTURE_2D, texture2);
   // set the texture wrapping parameters
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                  GL_MIRRORED_REPEAT);  // set texture wrapping to GL_REPEAT
-                                        // (default wrapping method)
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+                  GL_REPEAT);  // set texture wrapping to GL_REPEAT (default
+                               // wrapping method)
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   // set texture filtering parameters
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -152,6 +152,8 @@ int main() {
   ourShader.use();  // don't forget to activate/use the shader before setting
                     // uniforms!
   // either set it manually like so:
+  float mixValue = 0.2f;
+  ourShader.setFloat("mixValue", mixValue);
   glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
   // or set it via the texture class
   ourShader.setInt("texture2", 1);
@@ -161,7 +163,7 @@ int main() {
   while (!glfwWindowShouldClose(window)) {
     // input
     // -----
-    processInput(window);
+    processInput(window, mixValue);
 
     // render
     // ------
@@ -176,6 +178,7 @@ int main() {
 
     // render container
     ourShader.use();
+    ourShader.setFloat("mixValue", mixValue);
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -201,9 +204,13 @@ int main() {
 // process all input: query GLFW whether relevant keys are pressed/released this
 // frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow* window) {
+void processInput(GLFWwindow* window, float& mixValue) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && mixValue < 1.0f)
+    mixValue += 0.001f;
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && mixValue > 0)
+    mixValue -= 0.001f;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback
