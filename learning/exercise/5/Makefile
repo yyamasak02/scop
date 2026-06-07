@@ -4,6 +4,11 @@ CPP_FLAGS = -std=c++20 -DDEBUG
 # Programs to build
 PROGRAMS := scop ex01 ex02 ex03
 
+# registre alias for each program
+ex01: ex01.exe
+ex02: ex02.exe
+ex03: ex03.exe
+
 SRCDIR := ./srcs
 INCDIR := ./includes
 
@@ -22,13 +27,13 @@ all: $(PROGRAMS)
 scop: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/*.cpp))
 	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
-ex01: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex01/*.cpp))
+ex01.exe: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex01/*.cpp))
 	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
-ex02: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex02/*.cpp))
+ex02.exe: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex02/*.cpp))
 	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
-ex03: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex03/*.cpp))
+ex03.exe: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex03/*.cpp))
 	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
 $(OBJDIR):
