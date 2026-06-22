@@ -65,7 +65,17 @@ class Camera {
 
   // returns the view matrix calculated using Euler Angles and the LookAt Matrix
   glm::mat4 GetViewMatrix() {
-    return glm::lookAt(Position, Position + Front, Up);
+    glm::vec3 zaxis = glm::normalize(-Front);
+    glm::vec3 xaxis = glm::normalize(glm::cross(WorldUp, zaxis));
+    glm::vec3 yaxis = glm::cross(zaxis, xaxis);
+    glm::mat4 m;
+    m[0] = glm::vec4(xaxis.x, yaxis.x, zaxis.x, 0.0f);
+    m[1] = glm::vec4(xaxis.y, yaxis.y, zaxis.y, 0.0f);
+    m[2] = glm::vec4(xaxis.z, yaxis.z, zaxis.z, 0.0f);
+    m[3] = glm::vec4(-glm::dot(xaxis, Position), -glm::dot(yaxis, Position),
+                     -glm::dot(zaxis, Position), 1.0f);
+    return m;
+    // return glm::lookAt(Position, Position + Front, Up);
   }
 
   // processes input received from any keyboard-like input system. Accepts input

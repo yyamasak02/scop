@@ -2,13 +2,11 @@ CPP = c++
 CPP_FLAGS = -std=c++20 -DDEBUG
 
 # Programs to build
-PROGRAMS := scop ex01 ex02 ex03 ex04
+PROGRAMS := ex01 ex02 
 
 # registre alias for each program
 ex01: ex01.exe
 ex02: ex02.exe
-ex03: ex03.exe
-ex04: ex04.exe
 
 SRCDIR := ./srcs
 INCDIR := ./includes
@@ -24,20 +22,10 @@ ALL_SRCS := $(shell find $(SRCDIR) -maxdepth 2 -name '*.cpp')
 
 all: $(PROGRAMS)
 
-# Root program (scop) uses .cpp files directly under srcs/
-scop: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/*.cpp))
-	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
-
 ex01.exe: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex01/*.cpp))
 	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
 ex02.exe: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex02/*.cpp))
-	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
-
-ex03.exe: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex03/*.cpp))
-	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
-
-ex04.exe: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/ex04/*.cpp))
 	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
 $(OBJDIR):
