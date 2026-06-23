@@ -49,11 +49,11 @@ int main() {
   // ---------------------------------------
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     std::cout << "Failed to initialize GLAD" << std::endl;
+    glfwTerminate();
     return -1;
   }
 
   Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
-  shader.use();
   unsigned int VBO, VAO;
   float vertices[] = {-0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.0f,  0.5f, 0.0f,
                       0.0f,  -0.5f, 0.0f, 0.9f, -0.5f, 0.0f, 0.45f, 0.5f, 0.0f};
@@ -77,11 +77,11 @@ int main() {
     shader.use();
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
-    // glDrawArrays(GL_TRIANGLES, 4, 7);
-    // glBindVertexArray(0); // no need
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
+  glDeleteVertexArrays(1, &VAO);
+  glDeleteBuffers(1, &VBO);
   glfwTerminate();
   return 0;
 }
