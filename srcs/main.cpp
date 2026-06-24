@@ -29,12 +29,19 @@ void processInput(GLFWwindow* window) {
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-int main() {
+void init() {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+#ifdef __APPLE__
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+}
+
+int main() {
+  init();
   GLFWwindow* window =
       glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
   if (window == NULL) {
@@ -44,14 +51,12 @@ int main() {
   }
   glfwMakeContextCurrent(window);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-  // glad: load all OpenGL function pointers
-  // ---------------------------------------
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     std::cout << "Failed to initialize GLAD" << std::endl;
     glfwTerminate();
     return -1;
   }
+  glEnable(GL_DEPTH_TEST);
 
   Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
   unsigned int VBO, VAO;
@@ -61,12 +66,21 @@ int main() {
   glGenBuffers(1, &VBO);
 
   glBindVertexArray(VAO);
+
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  glm::mat4 model = glm::mat4(1.0f);
+  glm::vec3 eye = glm::vec3(0.0f, 0.0f, 3.0f);
+  glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f);
+  glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+  glm::mat4 view = glm::lookAt(eye, center, up);
+  glm::mat4 projection = glm::perspective(
+      glm::radians(60.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
   glBindVertexArray(0);
   while (!glfwWindowShouldClose(window)) {
