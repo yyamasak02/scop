@@ -1,9 +1,9 @@
-#include "ObjLoader.h"
-
 #include <array>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+
+#include "WaveFrontObjectLoader.h"
 
 struct Vec3 {
   float x, y, z;

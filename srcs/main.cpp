@@ -3,16 +3,13 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 #include <learnopengl/shader_m.h>
-#include <stb_image.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-// declare proto type
-
-// declare GLSL program string
+#include "WaveFrontObjectLoader.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -43,7 +40,7 @@ void init() {
 int main() {
   init();
   GLFWwindow* window =
-      glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+      glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "scop", NULL, NULL);
   if (window == NULL) {
     std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
@@ -59,41 +56,56 @@ int main() {
   glEnable(GL_DEPTH_TEST);
 
   Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
+
+  ObjData obj = loadObj("resources/42.obj");
+
   unsigned int VBO, VAO;
-  float vertices[] = {-0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.0f,  0.5f, 0.0f,
-                      0.0f,  -0.5f, 0.0f, 0.9f, -0.5f, 0.0f, 0.45f, 0.5f, 0.0f};
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
 
   glBindVertexArray(VAO);
-
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, obj.vertices.size() * sizeof(float),
+               obj.vertices.data(), GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  // position: location 0
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
+  // color: location 1
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+                        (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
 
   glm::mat4 model = glm::mat4(1.0f);
-  glm::vec3 eye = glm::vec3(0.0f, 0.0f, 3.0f);
-  glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f);
-  glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-  glm::mat4 view = glm::lookAt(eye, center, up);
+  // 42ロゴは YZ 平面に広がっているので X 軸方向からカメラを向ける
+  glm::mat4 view = glm::lookAt(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(0.0f),
+                               glm::vec3(0.0f, 1.0f, 0.0f));
   glm::mat4 projection = glm::perspective(
-      glm::radians(60.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+      glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-  glBindVertexArray(0);
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    float angle = (float)glfwGetTime();
+    model = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
 
     shader.use();
+    shader.setMat4("model", model);
+    shader.setMat4("view", view);
+    shader.setMat4("projection", projection);
+
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_TRIANGLES, 0, obj.vertexCount);
+
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
+
   glDeleteVertexArrays(1, &VAO);
   glDeleteBuffers(1, &VBO);
   glfwTerminate();
