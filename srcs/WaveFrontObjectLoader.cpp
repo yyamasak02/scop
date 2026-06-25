@@ -1,6 +1,4 @@
 // Copyright [2026] yyamasak
-#include <WaveFrontObjectLoader.h>
-
 #include <array>
 #include <fstream>
 #include <sstream>
@@ -8,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "custom/WaveFrontObjectLoader.hpp"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
