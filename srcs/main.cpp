@@ -1,15 +1,16 @@
+// Copyright [2026] yyamasak
 // clang-format off
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 // clang-format on
+#include <WaveFrontObjectLoader.h>
 #include <learnopengl/shader_m.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-#include "WaveFrontObjectLoader.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -69,11 +70,12 @@ int main() {
                obj.vertices.data(), GL_STATIC_DRAW);
 
   // position: location 0
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+                        reinterpret_cast<void*>(0));
   glEnableVertexAttribArray(0);
   // color: location 1
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-                        (void*)(3 * sizeof(float)));
+                        reinterpret_cast<void*>(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -84,14 +86,16 @@ int main() {
   glm::mat4 view = glm::lookAt(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(0.0f),
                                glm::vec3(0.0f, 1.0f, 0.0f));
   glm::mat4 projection = glm::perspective(
-      glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+      glm::radians(45.0f),
+      static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
+      100.0f);
 
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
     glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    float angle = (float)glfwGetTime();
+    float angle = static_cast<float>(glfwGetTime());
     model = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
 
     shader.use();

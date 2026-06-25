@@ -1,13 +1,16 @@
+// Copyright [2026] yyamasak
+#include <WaveFrontObjectLoader.h>
+
 #include <array>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
-#include "WaveFrontObjectLoader.h"
-
-struct Vec3 {
-  float x, y, z;
-};
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 static const std::array<std::array<float, 3>, 9> kPalette = {{
     {1.0f, 0.3f, 0.3f},
@@ -26,7 +29,7 @@ ObjData loadObj(const std::string& path) {
   if (!file.is_open())
     throw std::runtime_error("Cannot open OBJ file: " + path);
 
-  std::vector<Vec3> positions;
+  std::vector<glm::vec3> positions;
   ObjData data;
   int faceIndex = 0;
 
@@ -37,15 +40,17 @@ ObjData loadObj(const std::string& path) {
     ss >> token;
 
     if (token == "v") {
-      Vec3 v;
-      ss >> v.x >> v.y >> v.z;
+      float x, y, z;
+      ss >> x >> y >> z;
+      glm::vec3 v(x, y, z);
       positions.push_back(v);
     } else if (token == "f") {
       std::vector<int> indices;
       std::string idx;
       while (ss >> idx) {
         int i = std::stoi(idx.substr(0, idx.find('/')));
-        indices.push_back(i > 0 ? i - 1 : (int)positions.size() + i);
+        indices.push_back(i > 0 ? i - 1
+                                : (static_cast<int>(positions.size()) + i));
       }
 
       const auto& color = kPalette[faceIndex % kPalette.size()];
@@ -65,7 +70,7 @@ ObjData loadObj(const std::string& path) {
     }
   }
 
-  data.vertexCount = (int)data.vertices.size() / 6;
+  data.vertexCount = (static_cast<int>(data.vertices.size())) / 6;
 
   // Center the mesh at its centroid
   float cx = 0, cy = 0, cz = 0;

@@ -1,5 +1,6 @@
 {
     "cSpell.enabled": false,
+    "cpplint.cpplintPath": "/home/yuhei0221/.local/bin/cpplint",
     "editor.formatOnSave": true,
     "github.copilot.chat.commitMessageGeneration.instructions": [
         {
