@@ -3,12 +3,12 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 // clang-format on
-#include <learnopengl/shader_m.h>
 
 #include <iostream>
 
 #include "custom/Camera.hpp"
 #include "custom/Mesh.hpp"
+#include "custom/Shader.hpp"
 #include "custom/WaveFrontObjectLoader.hpp"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
