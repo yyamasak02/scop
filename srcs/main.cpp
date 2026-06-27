@@ -33,6 +33,10 @@ void initialize() {
 #endif
 }
 
+struct AppContext {
+  Camera* camera;
+};
+
 int main() {
   initialize();
   GLFWwindow* window =
@@ -54,7 +58,8 @@ int main() {
     Camera camera(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f),
                   180.0f, 0.0f);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetWindowUserPointer(window, &camera);
+    AppContext ctx{&camera};
+    glfwSetWindowUserPointer(window, &ctx);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
     Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
@@ -82,6 +87,10 @@ int main() {
       float angle = static_cast<float>(glfwGetTime());
       model = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
       view = camera.GetViewMatrix();
+      projection = glm::perspective(
+          glm::radians(camera.zoom),
+          static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
+          100.0f);
 
       shader.use();
       shader.setMat4("model", model);
@@ -107,8 +116,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
   static double lastX = SCR_WIDTH / 2.0;
   static double lastY = SCR_HEIGHT / 2.0;
 
-  Camera* camera = reinterpret_cast<Camera*>(glfwGetWindowUserPointer(window));
-
+  AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   if (firstMouse) {
     lastX = xpos;
     lastY = ypos;
@@ -120,12 +128,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
   lastX = xpos;
   lastY = ypos;
 
-  camera->ProcessMouseMovement(xoffset, yoffset);
+  ctx->camera->ProcessMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-  Camera* camera = reinterpret_cast<Camera*>(glfwGetWindowUserPointer(window));
-  camera->ProcessMouseScroll(yoffset);
+  AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
+  ctx->camera->ProcessMouseScroll(yoffset);
 }
 
 void processInput(GLFWwindow* window, Camera& camera, float deltaTime) {
