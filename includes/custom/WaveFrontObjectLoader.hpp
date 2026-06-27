@@ -6,6 +6,10 @@
 struct ObjData {
   // Interleaved: x, y, z, r, g, b per vertex
   std::vector<float> vertices;
+  float yMax;
+  float yMin;
+  float zMax;
+  float zMin;
   int vertexCount;
 };
 

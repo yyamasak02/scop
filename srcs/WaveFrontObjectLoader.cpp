@@ -1,4 +1,5 @@
 // Copyright [2026] yyamasak
+#include <algorithm>
 #include <array>
 #include <fstream>
 #include <sstream>
@@ -81,11 +82,25 @@ ObjData loadObj(const std::string& path) {
   cx /= data.vertexCount;
   cy /= data.vertexCount;
   cz /= data.vertexCount;
+
   for (int i = 0; i < data.vertexCount; ++i) {
     data.vertices[i * 6] -= cx;
     data.vertices[i * 6 + 1] -= cy;
     data.vertices[i * 6 + 2] -= cz;
   }
 
+  if (data.vertices.size() >= 2) {
+    data.yMin = data.yMax = data.vertices[1];
+    data.zMin = data.zMax = data.vertices[2];
+  }
+
+  for (int i = 0; i < data.vertexCount; ++i) {
+    float y = data.vertices[i * 6 + 1];
+    float z = data.vertices[i * 6 + 2];
+    data.yMin = std::min(data.yMin, y);
+    data.yMax = std::max(data.yMax, y);
+    data.zMin = std::min(data.zMin, z);
+    data.zMax = std::max(data.zMax, z);
+  }
   return data;
 }

@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 #include "custom/Camera.hpp"
 #include "custom/Mesh.hpp"
 #include "custom/Shader.hpp"
@@ -62,13 +64,40 @@ int main() {
     glfwSetWindowUserPointer(window, &ctx);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
-    Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
     ObjData obj = loadObj("resources/42.obj");
+    Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
+    shader.setFloat("yMin", obj.yMin);
+    shader.setFloat("yMax", obj.yMax);
+    shader.setFloat("zMin", obj.zMin);
+    shader.setFloat("zMax", obj.zMax);
     Mesh mesh;
-
     mesh.upload(obj);
+
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    int texWidth, texHeight, nChannels;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* imgData = stbi_load("resources/awesomeface.png", &texWidth,
+                                       &texHeight, &nChannels, 0);
+    if (imgData) {
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA,
+                   GL_UNSIGNED_BYTE, imgData);
+      glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+      std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(imgData);
+
+    float blendFactor = 0.0f;
+    bool textureMode = false;
+    bool tKeyWasPressed = false;
+
     glm::mat4 model = glm::mat4(1.0f);
-    // 42ロゴは YZ 平面に広がっているので X 軸方向からカメラを向ける
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 projection = glm::perspective(
         glm::radians(camera.zoom),
@@ -81,6 +110,13 @@ int main() {
       float deltaTime = currentTime - preTime;
       processInput(window, camera, deltaTime);
       preTime = currentTime;
+
+      bool tKeyNow = glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS;
+      if (tKeyNow && !tKeyWasPressed) textureMode = !textureMode;
+      tKeyWasPressed = tKeyNow;
+
+      float target = textureMode ? 1.0f : 0.0f;
+      blendFactor += (target - blendFactor) * deltaTime * 2.0f;
       glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -92,10 +128,15 @@ int main() {
           static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
           100.0f);
 
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, texture);
+
       shader.use();
       shader.setMat4("model", model);
       shader.setMat4("view", view);
       shader.setMat4("projection", projection);
+      shader.setFloat("blendFactor", blendFactor);
+      shader.setInt("tex", 0);
 
       mesh.draw();
 
