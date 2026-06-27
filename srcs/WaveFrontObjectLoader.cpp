@@ -47,7 +47,7 @@ ObjData loadObj(const std::string& path) {
       std::vector<int> indices;
       std::string idx;
       while (ss >> idx) {
-        int i = std::stoi(idx.substr(0, idx.find('/')));
+        int i = std::stoi(idx.substr(0, idx.find('/')));  // 1/1の形式に対応する
         indices.push_back(i > 0 ? i - 1
                                 : (static_cast<int>(positions.size()) + i));
       }
