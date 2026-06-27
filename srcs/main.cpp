@@ -7,6 +7,7 @@
 
 #include <iostream>
 
+#include "custom/Camera.hpp"
 #include "custom/Mesh.hpp"
 #include "custom/WaveFrontObjectLoader.hpp"
 #include "glm/glm.hpp"
@@ -18,6 +19,8 @@ void processInput(GLFWwindow* window);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+Camera camera(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 180.0f,
+              0.0f);
 
 void initialize() {
   glfwInit();
@@ -56,10 +59,9 @@ int main() {
     mesh.upload(obj);
     glm::mat4 model = glm::mat4(1.0f);
     // 42ロゴは YZ 平面に広がっているので X 軸方向からカメラを向ける
-    glm::mat4 view = glm::lookAt(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(0.0f),
-                                 glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 projection = glm::perspective(
-        glm::radians(45.0f),
+        glm::radians(camera.zoom),
         static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
         100.0f);
 
@@ -70,6 +72,7 @@ int main() {
 
       float angle = static_cast<float>(glfwGetTime());
       model = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
+      view = camera.GetViewMatrix();
 
       shader.use();
       shader.setMat4("model", model);
