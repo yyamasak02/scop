@@ -15,12 +15,10 @@
 #include "glm/gtc/type_ptr.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window, Camera& camera);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-Camera camera(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 180.0f,
-              0.0f);
 
 void initialize() {
   glfwInit();
@@ -52,6 +50,8 @@ int main() {
   glEnable(GL_DEPTH_TEST);
 
   {
+    Camera camera(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f),
+                  180.0f, 0.0f);
     Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
     ObjData obj = loadObj("resources/42.obj");
     Mesh mesh;
@@ -66,7 +66,7 @@ int main() {
         100.0f);
 
     while (!glfwWindowShouldClose(window)) {
-      processInput(window);
+      processInput(window, camera);
       glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -93,7 +93,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow* window) {
+void processInput(GLFWwindow* window, Camera& camera) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
 }
