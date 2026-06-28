@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "custom/Camera.hpp"
+#include "custom/Matrix.hpp"
 #include "custom/Mesh.hpp"
 #include "custom/Shader.hpp"
 #include "custom/Texture.hpp"
@@ -77,7 +78,7 @@ int main() {
     bool textureMode = false;
     bool tKeyWasPressed = false;
 
-    glm::mat4 model = glm::mat4(1.0f);
+    Mat4 model(1.0f);
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 projection = glm::perspective(
         glm::radians(camera.zoom),
@@ -101,7 +102,7 @@ int main() {
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
       float angle = static_cast<float>(glfwGetTime());
-      model = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
+      model = rotate_y(angle);
       view = camera.GetViewMatrix();
       projection = glm::perspective(
           glm::radians(camera.zoom),

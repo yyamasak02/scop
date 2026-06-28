@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 
+#include "custom/Matrix.hpp"
 #include "custom/Shader.hpp"
 #include "glm/glm.hpp"
 
@@ -100,6 +101,10 @@ void Shader::setMat3(const std::string& name, const glm::mat3& mat) const {
                      &mat[0][0]);
 }
 void Shader::setMat4(const std::string& name, const glm::mat4& mat) const {
+  glUniformMatrix4fv(glGetUniformLocation(this->ID, name.c_str()), 1, GL_FALSE,
+                     &mat[0][0]);
+}
+void Shader::setMat4(const std::string& name, const Mat4& mat) const {
   glUniformMatrix4fv(glGetUniformLocation(this->ID, name.c_str()), 1, GL_FALSE,
                      &mat[0][0]);
 }
