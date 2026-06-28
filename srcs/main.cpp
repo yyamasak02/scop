@@ -6,11 +6,10 @@
 
 #include <iostream>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include "custom/Camera.hpp"
 #include "custom/Mesh.hpp"
 #include "custom/Shader.hpp"
+#include "custom/Texture.hpp"
 #include "custom/WaveFrontObjectLoader.hpp"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -73,26 +72,7 @@ int main() {
     Mesh mesh;
     mesh.upload(obj);
 
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    int texWidth, texHeight, nChannels;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* imgData = stbi_load("resources/awesomeface.png", &texWidth,
-                                       &texHeight, &nChannels, 0);
-    if (imgData) {
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA,
-                   GL_UNSIGNED_BYTE, imgData);
-      glGenerateMipmap(GL_TEXTURE_2D);
-    } else {
-      std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(imgData);
-
+    Texture tex("resources/awesomeface.png");
     float blendFactor = 0.0f;
     bool textureMode = false;
     bool tKeyWasPressed = false;
@@ -128,8 +108,7 @@ int main() {
           static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
           100.0f);
 
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, texture);
+      tex.bind(0);
 
       shader.use();
       shader.setMat4("model", model);
