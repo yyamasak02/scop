@@ -11,6 +11,7 @@
 #include "custom/Mesh.hpp"
 #include "custom/Shader.hpp"
 #include "custom/Texture.hpp"
+#include "custom/Vec.hpp"
 #include "custom/WaveFrontObjectLoader.hpp"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -57,8 +58,7 @@ int main() {
   glEnable(GL_DEPTH_TEST);
 
   {
-    Camera camera(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f),
-                  180.0f, 0.0f);
+    Camera camera(Vec3(5.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), 180.0f, 0.0f);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     AppContext ctx{&camera};
     glfwSetWindowUserPointer(window, &ctx);
@@ -79,7 +79,7 @@ int main() {
     bool tKeyWasPressed = false;
 
     Mat4 model(1.0f);
-    glm::mat4 view = camera.GetViewMatrix();
+    Mat4 view = camera.GetViewMatrix();
     glm::mat4 projection = glm::perspective(
         glm::radians(camera.zoom),
         static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,

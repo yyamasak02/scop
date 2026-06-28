@@ -1,0 +1,23 @@
+// Copyright [2026] yyamasak
+#pragma once
+
+struct Vec3 {
+  float x;
+  float y;
+  float z;
+
+  Vec3();
+  explicit Vec3(const float v);
+  Vec3(const float x, const float y, const float z);
+  float length() const;
+  Vec3 operator*(const float scalar) const;
+  Vec3 operator+(const Vec3& target) const;
+  Vec3 operator-(const Vec3& target) const;
+  Vec3 operator-() const;
+  Vec3& operator+=(const Vec3& target);
+  Vec3& operator-=(const Vec3& target);
+};
+
+Vec3 normalize(const Vec3& vec);
+Vec3 cross(const Vec3& vecA, const Vec3& vecB);
+float dot(const Vec3& vecA, const Vec3& vecB);

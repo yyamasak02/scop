@@ -2,8 +2,8 @@
 #pragma once
 #include <glad/glad.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "custom/Matrix.hpp"
+#include "custom/Vec.hpp"
 
 // Defines several possible options for camera movement. Used as abstraction to
 // stay away from window-system specific input methods
@@ -21,11 +21,11 @@ const float ZOOM = 45.0f;
 class Camera {
  public:
   // camera Attributes
-  glm::vec3 position;
-  glm::vec3 front;
-  glm::vec3 up;
-  glm::vec3 right;
-  glm::vec3 worldUp;
+  Vec3 position;
+  Vec3 front;
+  Vec3 up;
+  Vec3 right;
+  Vec3 worldUp;
   // euler Angles
   float yaw;
   float pitch;
@@ -35,15 +35,15 @@ class Camera {
   float zoom;
 
   // constructor with vectors
-  Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
-         glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW,
+  Camera(Vec3 position = Vec3(0.0f, 0.0f, 0.0f),
+         Vec3 up = Vec3(0.0f, 1.0f, 0.0f), float yaw = YAW,
          float pitch = PITCH);
   // constructor with scalar values
   Camera(float posX, float posY, float posZ, float upX, float upY, float upZ,
          float yaw, float pitch);
 
   // returns the view matrix calculated using Euler Angles and the LookAt Matrix
-  glm::mat4 GetViewMatrix();
+  Mat4 GetViewMatrix();
 
   // processes input received from any keyboard-like input system. Accepts input
   // parameter in the form of camera defined ENUM (to abstract it from windowing
@@ -63,3 +63,5 @@ class Camera {
   // calculates the front vector from the Camera's (updated) Euler Angles
   void updateCameraVectors();
 };
+
+float radians(const float angle);
