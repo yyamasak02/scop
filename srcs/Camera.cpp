@@ -49,7 +49,8 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
   if (direction == BACKWARD) this->position -= this->front * velocity;
   if (direction == LEFT) this->position -= this->right * velocity;
   if (direction == RIGHT) this->position += this->right * velocity;
-  this->position.y = 0.0f;
+  if (direction == UP) this->position += this->up * velocity;
+  if (direction == DOWN) this->position -= this->up * velocity;
 }
 
 void Camera::ProcessMouseMovement(float xoffset, float yoffset,
