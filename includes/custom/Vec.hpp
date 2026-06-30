@@ -18,9 +18,20 @@ struct Vec3 {
   Vec3& operator+=(const Vec3& target);
   Vec3& operator-=(const Vec3& target);
 };
-
+/**
+ * 正規化
+ */
 Vec3 normalize(const Vec3& vec);
+/**
+ * 外積
+ */
 Vec3 cross(const Vec3& vecA, const Vec3& vecB);
+/**
+ * 内積
+ */
 float dot(const Vec3& vecA, const Vec3& vecB);
+/**
+ * ラジアン
+ */
 float radians(const float angle);
 }  // namespace ft_math

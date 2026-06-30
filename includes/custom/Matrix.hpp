@@ -11,6 +11,9 @@ struct Mat4 {
   const float* operator[](int col) const;
 };
 
+/**
+ * Y軸回転
+ */
 Mat4 rotate_y(const float angle);
 /**
  * 透視投影行列を作成
