@@ -30,4 +30,18 @@ Mat4 rotate_y(const float angle) {
   m[2][2] = std::cos(angle);
   return m;
 }
+
+Mat4 perspective(const float fovy, const float aspect, const float zNear,
+                 const float zFar) {
+  Mat4 m(0.0f);
+
+  const float tanHalfFovy = std::tan(fovy / 2.0f);
+
+  m[0][0] = 1.0f / (aspect * tanHalfFovy);
+  m[1][1] = 1.0f / tanHalfFovy;
+  m[2][2] = -(zFar + zNear) / (zFar - zNear);
+  m[2][3] = -1.0f;
+  m[3][2] = -(2.0f * zFar * zNear) / (zFar - zNear);
+  return m;
+}
 }  // namespace ft_math

@@ -63,5 +63,3 @@ class Camera {
   // calculates the front vector from the Camera's (updated) Euler Angles
   void updateCameraVectors();
 };
-
-float radians(const float angle);

@@ -12,4 +12,9 @@ struct Mat4 {
 };
 
 Mat4 rotate_y(const float angle);
+/**
+ * 透視投影行列を作成
+ */
+Mat4 perspective(const float fovy, const float aspect, const float zNear,
+                 const float zFar);
 }  // namespace ft_math

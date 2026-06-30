@@ -13,9 +13,6 @@
 #include "custom/Texture.hpp"
 #include "custom/Vec.hpp"
 #include "custom/WaveFrontObjectLoader.hpp"
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -81,8 +78,8 @@ int main() {
 
     ft_math::Mat4 model(1.0f);
     ft_math::Mat4 view = camera.GetViewMatrix();
-    glm::mat4 projection = glm::perspective(
-        radians(camera.zoom),
+    ft_math::Mat4 projection = ft_math::perspective(
+        ft_math::radians(camera.zoom),
         static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
         100.0f);
 
@@ -105,8 +102,8 @@ int main() {
       float angle = static_cast<float>(glfwGetTime());
       model = ft_math::rotate_y(angle);
       view = camera.GetViewMatrix();
-      projection = glm::perspective(
-          glm::radians(camera.zoom),
+      projection = ft_math::perspective(
+          ft_math::radians(camera.zoom),
           static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
           100.0f);
 

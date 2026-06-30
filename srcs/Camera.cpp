@@ -93,9 +93,11 @@ void Camera::ProcessMouseScroll(float yoffset) {
 
 void Camera::updateCameraVectors() {
   // calculate the new Front vector
-  float x = cos(radians(this->yaw)) * cos(radians(this->pitch));
-  float y = sin(radians(this->pitch));
-  float z = sin(radians(this->yaw)) * cos(radians(this->pitch));
+  float x =
+      cos(ft_math::radians(this->yaw)) * cos(ft_math::radians(this->pitch));
+  float y = sin(ft_math::radians(this->pitch));
+  float z =
+      sin(ft_math::radians(this->yaw)) * cos(ft_math::radians(this->pitch));
   ft_math::Vec3 front(x, y, z);
   this->front = ft_math::normalize(front);
   // also re-calculate the Right and Up vector
@@ -105,5 +107,3 @@ void Camera::updateCameraVectors() {
   // which results in slower movement.
   this->up = ft_math::normalize(ft_math::cross(this->right, this->front));
 }
-
-float radians(const float angle) { return angle * M_PI / 180.0f; }

@@ -22,4 +22,5 @@ struct Vec3 {
 Vec3 normalize(const Vec3& vec);
 Vec3 cross(const Vec3& vecA, const Vec3& vecB);
 float dot(const Vec3& vecA, const Vec3& vecB);
+float radians(const float angle);
 }  // namespace ft_math

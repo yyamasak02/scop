@@ -57,4 +57,6 @@ Vec3 cross(const Vec3& vecA, const Vec3& vecB) {
 float dot(const Vec3& vecA, const Vec3& vecB) {
   return vecA.x * vecB.x + vecA.y * vecB.y + vecA.z * vecB.z;
 }
+
+float radians(const float angle) { return angle * M_PI / 180.0f; }
 }  // namespace ft_math

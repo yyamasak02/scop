@@ -7,10 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "custom/Vec.hpp"
 #include "custom/WaveFrontObjectLoader.hpp"
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
 
 static const std::array<std::array<float, 3>, 9> kPalette = {{
     {1.0f, 0.3f, 0.3f},
@@ -29,7 +27,7 @@ ObjData loadObj(const std::string& path) {
   if (!file.is_open())
     throw std::runtime_error("Cannot open OBJ file: " + path);
 
-  std::vector<glm::vec3> positions;
+  std::vector<ft_math::Vec3> positions;
   ObjData data;
   int faceIndex = 0;
 
@@ -42,7 +40,7 @@ ObjData loadObj(const std::string& path) {
     if (token == "v") {
       float x, y, z;
       ss >> x >> y >> z;
-      glm::vec3 v(x, y, z);
+      ft_math::Vec3 v(x, y, z);
       positions.push_back(v);
     } else if (token == "f") {
       std::vector<int> indices;
