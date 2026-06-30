@@ -21,11 +21,11 @@ const float ZOOM = 45.0f;
 class Camera {
  public:
   // camera Attributes
-  Vec3 position;
-  Vec3 front;
-  Vec3 up;
-  Vec3 right;
-  Vec3 worldUp;
+  ft_math::Vec3 position;
+  ft_math::Vec3 front;
+  ft_math::Vec3 up;
+  ft_math::Vec3 right;
+  ft_math::Vec3 worldUp;
   // euler Angles
   float yaw;
   float pitch;
@@ -35,15 +35,15 @@ class Camera {
   float zoom;
 
   // constructor with vectors
-  Camera(Vec3 position = Vec3(0.0f, 0.0f, 0.0f),
-         Vec3 up = Vec3(0.0f, 1.0f, 0.0f), float yaw = YAW,
+  Camera(ft_math::Vec3 position = ft_math::Vec3(0.0f, 0.0f, 0.0f),
+         ft_math::Vec3 up = ft_math::Vec3(0.0f, 1.0f, 0.0f), float yaw = YAW,
          float pitch = PITCH);
   // constructor with scalar values
   Camera(float posX, float posY, float posZ, float upX, float upY, float upZ,
          float yaw, float pitch);
 
   // returns the view matrix calculated using Euler Angles and the LookAt Matrix
-  Mat4 GetViewMatrix();
+  ft_math::Mat4 GetViewMatrix();
 
   // processes input received from any keyboard-like input system. Accepts input
   // parameter in the form of camera defined ENUM (to abstract it from windowing

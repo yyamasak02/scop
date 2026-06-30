@@ -1,6 +1,7 @@
 // Copyright [2026] yyamasak
 #pragma once
 
+namespace ft_math {
 struct Mat4 {
   float m[16];
 
@@ -11,3 +12,4 @@ struct Mat4 {
 };
 
 Mat4 rotate_y(const float angle);
+}  // namespace ft_math

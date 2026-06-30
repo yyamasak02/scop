@@ -3,6 +3,7 @@
 
 #include "custom/Vec.hpp"
 
+namespace ft_math {
 Vec3::Vec3() : x(0.0f), y(0.0f), z(0.0f) {}
 
 Vec3::Vec3(const float v) : x(v), y(v), z(v) {}
@@ -56,3 +57,4 @@ Vec3 cross(const Vec3& vecA, const Vec3& vecB) {
 float dot(const Vec3& vecA, const Vec3& vecB) {
   return vecA.x * vecB.x + vecA.y * vecB.y + vecA.z * vecB.z;
 }
+}  // namespace ft_math

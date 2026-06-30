@@ -58,7 +58,8 @@ int main() {
   glEnable(GL_DEPTH_TEST);
 
   {
-    Camera camera(Vec3(5.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), 180.0f, 0.0f);
+    Camera camera(ft_math::Vec3(5.0f, 0.0f, 0.0f),
+                  ft_math::Vec3(0.0f, 1.0f, 0.0f), 180.0f, 0.0f);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     AppContext ctx{&camera};
     glfwSetWindowUserPointer(window, &ctx);
@@ -78,10 +79,10 @@ int main() {
     bool textureMode = false;
     bool tKeyWasPressed = false;
 
-    Mat4 model(1.0f);
-    Mat4 view = camera.GetViewMatrix();
+    ft_math::Mat4 model(1.0f);
+    ft_math::Mat4 view = camera.GetViewMatrix();
     glm::mat4 projection = glm::perspective(
-        glm::radians(camera.zoom),
+        radians(camera.zoom),
         static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
         100.0f);
 
@@ -102,7 +103,7 @@ int main() {
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
       float angle = static_cast<float>(glfwGetTime());
-      model = rotate_y(angle);
+      model = ft_math::rotate_y(angle);
       view = camera.GetViewMatrix();
       projection = glm::perspective(
           glm::radians(camera.zoom),

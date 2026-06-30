@@ -4,6 +4,7 @@
 
 #include "custom/Matrix.hpp"
 
+namespace ft_math {
 Mat4::Mat4() {
   for (int i = 0; i < 16; ++i) {
     this->m[i] = 0.0f;
@@ -29,3 +30,4 @@ Mat4 rotate_y(const float angle) {
   m[2][2] = std::cos(angle);
   return m;
 }
+}  // namespace ft_math
