@@ -16,6 +16,8 @@
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void mouse_button_callback(GLFWwindow* window, int button, int action,
+                           int mods);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window, Camera& camera, float deltaTime);
 
@@ -35,6 +37,8 @@ void initialize() {
 
 struct AppContext {
   Camera* camera;
+  bool isCameraLocked = false;
+  bool firstMouse = true;
 };
 
 int main() {
@@ -60,6 +64,7 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     AppContext ctx{&camera};
     glfwSetWindowUserPointer(window, &ctx);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
     ObjData obj = loadObj("resources/42.obj");
@@ -131,15 +136,18 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-  static bool firstMouse = true;
   static double lastX = SCR_WIDTH / 2.0;
   static double lastY = SCR_HEIGHT / 2.0;
 
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
-  if (firstMouse) {
+  if (ctx->isCameraLocked) {
+    ctx->firstMouse = true;
+    return;
+  }
+  if (ctx->firstMouse) {
     lastX = xpos;
     lastY = ypos;
-    firstMouse = false;
+    ctx->firstMouse = false;
   }
 
   double xoffset = xpos - lastX;
@@ -148,6 +156,17 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
   lastY = ypos;
 
   ctx->camera->ProcessMouseMovement(xoffset, yoffset);
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action,
+                           int mods) {
+  AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
+  if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+    ctx->isCameraLocked = !ctx->isCameraLocked;
+    // ロックされた瞬間、あるいは解除された瞬間に
+    // 次の移動でワープしないよう firstMouse を true にしておく
+    ctx->firstMouse = true;
+  }
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
