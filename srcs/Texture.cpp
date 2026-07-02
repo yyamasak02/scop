@@ -6,31 +6,25 @@
 #include <iostream>
 #include <string>
 
+#include "custom/ImageLoader.hpp"
 #include "custom/Texture.hpp"
-// clang-format off
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb/stb_image.h"
-// clang-format on
 
 Texture::Texture(const std::string& imgPath) {
+  ft_image::ImageData imgData = ft_image::loadImage(imgPath);
+  if (imgData.data.empty()) {
+    std::cout << "Failed to load texture: " << imgPath << std::endl;
+    return;
+  }
   glGenTextures(1, &this->ID);
   glBindTexture(GL_TEXTURE_2D, this->ID);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  int texWidth, texHeight, nChannels;
-  stbi_set_flip_vertically_on_load(true);
-  unsigned char* imgData =
-      stbi_load(imgPath.c_str(), &texWidth, &texHeight, &nChannels, 0);
-  if (imgData) {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, imgData);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    std::cout << "Failed to load texture" << std::endl;
-  }
-  stbi_image_free(imgData);
+  glTexImage2D(GL_TEXTURE_2D, 0, imgData.internalFormat, imgData.width,
+               imgData.height, 0, imgData.format, GL_UNSIGNED_BYTE,
+               imgData.data.data());
+  glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 Texture::~Texture() { glDeleteTextures(1, &this->ID); }

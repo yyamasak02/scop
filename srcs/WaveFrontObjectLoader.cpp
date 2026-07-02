@@ -1,6 +1,5 @@
 // Copyright [2026] yyamasak
 #include <algorithm>
-#include <array>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -10,18 +9,6 @@
 #include "custom/Vec.hpp"
 #include "custom/WaveFrontObjectLoader.hpp"
 
-static const std::array<std::array<float, 3>, 9> kPalette = {{
-    {1.0f, 0.3f, 0.3f},
-    {0.3f, 1.0f, 0.3f},
-    {0.3f, 0.3f, 1.0f},
-    {1.0f, 1.0f, 0.3f},
-    {1.0f, 0.3f, 1.0f},
-    {0.3f, 1.0f, 1.0f},
-    {1.0f, 0.6f, 0.2f},
-    {0.6f, 0.2f, 1.0f},
-    {0.2f, 0.8f, 0.6f},
-}};
-
 ObjData loadObj(const std::string& path) {
   std::ifstream file(path);
   if (!file.is_open())
@@ -29,7 +16,6 @@ ObjData loadObj(const std::string& path) {
 
   std::vector<ft_math::Vec3> positions;
   ObjData data;
-  int faceIndex = 0;
 
   std::string line;
   while (std::getline(file, line)) {
@@ -51,20 +37,17 @@ ObjData loadObj(const std::string& path) {
                                 : (static_cast<int>(positions.size()) + i));
       }
 
-      const auto& color = kPalette[faceIndex % kPalette.size()];
-
       // Fan triangulation
       for (size_t i = 1; i + 1 < indices.size(); ++i) {
         for (int vi : {indices[0], indices[i], indices[i + 1]}) {
           data.vertices.push_back(positions[vi].x);
           data.vertices.push_back(positions[vi].y);
           data.vertices.push_back(positions[vi].z);
-          data.vertices.push_back(color[0]);
-          data.vertices.push_back(color[1]);
-          data.vertices.push_back(color[2]);
+          data.vertices.push_back(0.0f);
+          data.vertices.push_back(0.0f);
+          data.vertices.push_back(0.0f);
         }
       }
-      ++faceIndex;
     }
   }
 
@@ -99,6 +82,13 @@ ObjData loadObj(const std::string& path) {
     data.yMax = std::max(data.yMax, y);
     data.zMin = std::min(data.zMin, z);
     data.zMax = std::max(data.zMax, z);
+  }
+  for (int i = 0; i < data.vertexCount; ++i) {
+    float y = data.vertices[i * 6 + 1];
+    float grey = 0.1f + ((y - data.yMin) / (data.yMax - data.yMin)) * 0.4f;
+    data.vertices[i * 6 + 3] = grey;
+    data.vertices[i * 6 + 4] = grey;
+    data.vertices[i * 6 + 5] = grey;
   }
   return data;
 }

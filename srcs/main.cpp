@@ -69,6 +69,7 @@ int main() {
     glfwSetScrollCallback(window, scroll_callback);
     ObjData obj = loadObj("resources/42.obj");
     Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
+    shader.use();
     shader.setFloat("yMin", obj.yMin);
     shader.setFloat("yMax", obj.yMax);
     shader.setFloat("zMin", obj.zMin);
@@ -76,7 +77,7 @@ int main() {
     Mesh mesh;
     mesh.upload(obj);
 
-    Texture tex("resources/awesomeface.png");
+    Texture tex("resources/awesomeface.bmp");
     float blendFactor = 0.0f;
     bool textureMode = false;
     bool tKeyWasPressed = false;
