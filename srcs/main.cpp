@@ -11,6 +11,7 @@
 #include "custom/Mesh.hpp"
 #include "custom/Shader.hpp"
 #include "custom/Texture.hpp"
+#include "custom/Transform.hpp"
 #include "custom/Vec.hpp"
 #include "custom/WaveFrontObjectLoader.hpp"
 
@@ -19,7 +20,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void mouse_button_callback(GLFWwindow* window, int button, int action,
                            int mods);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow* window, Camera& camera, float deltaTime);
+void processInput(GLFWwindow* window, float deltaTime);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -37,6 +38,7 @@ void initialize() {
 
 struct AppContext {
   Camera* camera;
+  Transform* transform;
   bool isCameraLocked = false;
   bool firstMouse = true;
 };
@@ -61,8 +63,9 @@ int main() {
   {
     Camera camera(ft_math::Vec3(5.0f, 0.0f, 0.0f),
                   ft_math::Vec3(0.0f, 1.0f, 0.0f), 180.0f, 0.0f);
+    Transform transform = Transform(ft_math::Vec3(1.0f), 0.0f);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    AppContext ctx{&camera};
+    AppContext ctx{&camera, &transform};
     glfwSetWindowUserPointer(window, &ctx);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -82,7 +85,7 @@ int main() {
     bool textureMode = false;
     bool tKeyWasPressed = false;
 
-    ft_math::Mat4 model(1.0f);
+    ft_math::Mat4 model = transform.getModelMatrix();
     ft_math::Mat4 view = camera.GetViewMatrix();
     ft_math::Mat4 projection = ft_math::perspective(
         ft_math::radians(camera.zoom),
@@ -93,7 +96,7 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
       float currentTime = glfwGetTime();
       float deltaTime = currentTime - preTime;
-      processInput(window, camera, deltaTime);
+      processInput(window, deltaTime);
       preTime = currentTime;
 
       bool tKeyNow = glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS;
@@ -105,8 +108,8 @@ int main() {
       glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      float angle = static_cast<float>(glfwGetTime());
-      model = ft_math::rotate_y(angle);
+      transform.rotation += deltaTime * 1.0f;
+      model = transform.getModelMatrix();
       view = camera.GetViewMatrix();
       projection = ft_math::perspective(
           ft_math::radians(camera.zoom),
@@ -175,19 +178,21 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
   ctx->camera->ProcessMouseScroll(yoffset);
 }
 
-void processInput(GLFWwindow* window, Camera& camera, float deltaTime) {
+void processInput(GLFWwindow* window, float deltaTime) {
+  AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    camera.ProcessKeyboard(FORWARD, deltaTime);
+    ctx->camera->ProcessKeyboard(FORWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    camera.ProcessKeyboard(BACKWARD, deltaTime);
+    ctx->camera->ProcessKeyboard(BACKWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    camera.ProcessKeyboard(LEFT, deltaTime);
+    ctx->camera->ProcessKeyboard(LEFT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    camera.ProcessKeyboard(RIGHT, deltaTime);
+    ctx->camera->ProcessKeyboard(RIGHT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    camera.ProcessKeyboard(DOWN, deltaTime);
+    ctx->camera->ProcessKeyboard(DOWN, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    camera.ProcessKeyboard(UP, deltaTime);
+    ctx->camera->ProcessKeyboard(UP, deltaTime);
+  // TODO(yyamasak) モデルの移動実装
 }
