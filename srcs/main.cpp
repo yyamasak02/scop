@@ -21,6 +21,10 @@ void mouse_button_callback(GLFWwindow* window, int button, int action,
                            int mods);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window, float deltaTime);
+void key_callback(GLFWwindow* window, int key, int scancode, int action,
+                  int mods);
+void processCameraInput(GLFWwindow* window, float deltaTime);
+void processObjectInput(GLFWwindow* window, float deltaTime);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -36,11 +40,13 @@ void initialize() {
 #endif
 }
 
+enum MotionMode { CAMERA, OBJECT };
 struct AppContext {
   Camera* camera;
   Transform* transform;
   bool isCameraLocked = false;
   bool firstMouse = true;
+  MotionMode motionMode = CAMERA;
 };
 
 int main() {
@@ -63,14 +69,16 @@ int main() {
   {
     Camera camera(ft_math::Vec3(5.0f, 0.0f, 0.0f),
                   ft_math::Vec3(0.0f, 1.0f, 0.0f), 180.0f, 0.0f);
-    Transform transform = Transform(ft_math::Vec3(1.0f), 0.0f);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    Transform transform = Transform(ft_math::Vec3(1.0f), 0.0f, 2.5f);
     AppContext ctx{&camera, &transform};
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetWindowUserPointer(window, &ctx);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+    glfwSetKeyCallback(window, key_callback);
     ObjData obj = loadObj("resources/42.obj");
+    // ObjData obj = loadObj("resources/teapot.obj");
     Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
     shader.use();
     shader.setFloat("yMin", obj.yMin);
@@ -178,21 +186,62 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
   ctx->camera->ProcessMouseScroll(yoffset);
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action,
+                  int mods) {
+  (void)scancode;
+  (void)mods;
+
+  AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
+
+  if (key == GLFW_KEY_TAB && action == GLFW_RELEASE) {
+    if (ctx->motionMode == CAMERA) {
+      ctx->motionMode = OBJECT;
+      glfwSetWindowTitle(window, "scop - Mode: Object");
+    } else if (ctx->motionMode == OBJECT) {
+      ctx->motionMode = CAMERA;
+      glfwSetWindowTitle(window, "scop - Mode: Camera");
+    }
+  }
+}
+
 void processInput(GLFWwindow* window, float deltaTime) {
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
+  if (ctx->motionMode == CAMERA)
+    processCameraInput(window, deltaTime);
+  else if (ctx->motionMode == OBJECT)
+    processObjectInput(window, deltaTime);
+}
+
+void processCameraInput(GLFWwindow* window, float deltaTime) {
+  AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     ctx->camera->ProcessKeyboard(FORWARD, deltaTime);
-  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+  else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     ctx->camera->ProcessKeyboard(BACKWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     ctx->camera->ProcessKeyboard(LEFT, deltaTime);
-  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+  else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     ctx->camera->ProcessKeyboard(RIGHT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     ctx->camera->ProcessKeyboard(DOWN, deltaTime);
-  if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+  else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     ctx->camera->ProcessKeyboard(UP, deltaTime);
-  // TODO(yyamasak) モデルの移動実装
+}
+
+void processObjectInput(GLFWwindow* window, float deltaTime) {
+  AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    ctx->transform->move(ctx->camera->front, deltaTime);
+  else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    ctx->transform->move(-ctx->camera->front, deltaTime);
+  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    ctx->transform->move(-ctx->camera->right, deltaTime);
+  else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    ctx->transform->move(ctx->camera->right, deltaTime);
+  if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    ctx->transform->move(-ctx->camera->up, deltaTime);
+  else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    ctx->transform->move(ctx->camera->up, deltaTime);
 }

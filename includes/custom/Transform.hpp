@@ -7,7 +7,10 @@
 struct Transform {
   ft_math::Vec3 position;
   float rotation;
-  Transform(const ft_math::Vec3& position, const float rotation);
+  float movementSpeed;
+  Transform(const ft_math::Vec3& position, const float rotation,
+            const float movementSpeed);
 
   ft_math::Mat4 getModelMatrix() const;
+  void move(const ft_math::Vec3& direction, const float deltaTime);
 };
