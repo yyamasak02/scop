@@ -4,11 +4,13 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
+#include <format>
 #include <iostream>
 
 #include "custom/Camera.hpp"
 #include "custom/Matrix.hpp"
 #include "custom/Mesh.hpp"
+#include "custom/MotionMode.hpp"
 #include "custom/Shader.hpp"
 #include "custom/Texture.hpp"
 #include "custom/Transform.hpp"
@@ -39,13 +41,12 @@ void initialize() {
 #endif
 }
 
-enum MotionMode { CAMERA, OBJECT };
 struct AppContext {
   Camera* camera;
   Transform* transform;
   bool isCameraLocked = false;
   bool firstMouse = true;
-  MotionMode motionMode = CAMERA;
+  MotionMode::MotionModeValue motionMode = MotionMode::Camera;
 };
 
 int main() {
@@ -192,13 +193,15 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action,
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
 
   if (key == GLFW_KEY_TAB && action == GLFW_RELEASE) {
-    if (ctx->motionMode == CAMERA) {
-      ctx->motionMode = OBJECT;
+    if (ctx->motionMode == MotionMode::Camera) {
+      ctx->motionMode = MotionMode::Object;
       glfwSetWindowTitle(window, "scop - Mode: Object");
-    } else if (ctx->motionMode == OBJECT) {
-      ctx->motionMode = CAMERA;
-      glfwSetWindowTitle(window, "scop - Mode: Camera");
+    } else if (ctx->motionMode == MotionMode::Object) {
+      ctx->motionMode = MotionMode::Camera;
     }
+    glfwSetWindowTitle(window, std::format("scop - Mode: {}",
+                                           MotionMode::toName(ctx->motionMode))
+                                   .c_str());
   }
 }
 
@@ -206,9 +209,9 @@ void processInput(GLFWwindow* window, float deltaTime) {
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
-  if (ctx->motionMode == CAMERA)
+  if (ctx->motionMode == MotionMode::Camera)
     processCameraInput(window, deltaTime);
-  else if (ctx->motionMode == OBJECT)
+  else if (ctx->motionMode == MotionMode::Object)
     processObjectInput(window, deltaTime);
 }
 
