@@ -15,14 +15,13 @@
 #include "custom/Vec.hpp"
 #include "custom/WaveFrontObjectLoader.hpp"
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void mouse_button_callback(GLFWwindow* window, int button, int action,
-                           int mods);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+void mouseCallback(GLFWwindow* window, double xpos, double ypos);
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+void keyCallback(GLFWwindow* window, int key, int scancode, int action,
+                 int mods);
 void processInput(GLFWwindow* window, float deltaTime);
-void key_callback(GLFWwindow* window, int key, int scancode, int action,
-                  int mods);
 void processCameraInput(GLFWwindow* window, float deltaTime);
 void processObjectInput(GLFWwindow* window, float deltaTime);
 
@@ -71,12 +70,12 @@ int main() {
                   ft_math::Vec3(0.0f, 1.0f, 0.0f), 180.0f, 0.0f);
     Transform transform = Transform(ft_math::Vec3(1.0f), 0.0f, 2.5f);
     AppContext ctx{&camera, &transform};
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
     glfwSetWindowUserPointer(window, &ctx);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-    glfwSetKeyCallback(window, key_callback);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    glfwSetCursorPosCallback(window, mouseCallback);
+    glfwSetScrollCallback(window, scrollCallback);
+    glfwSetKeyCallback(window, keyCallback);
     ObjData obj = loadObj("resources/42.obj");
     // ObjData obj = loadObj("resources/teapot.obj");
     Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
@@ -94,7 +93,7 @@ int main() {
     bool tKeyWasPressed = false;
 
     ft_math::Mat4 model = transform.getModelMatrix();
-    ft_math::Mat4 view = camera.GetViewMatrix();
+    ft_math::Mat4 view = camera.getViewMatrix();
     ft_math::Mat4 projection = ft_math::perspective(
         ft_math::radians(camera.zoom),
         static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
@@ -118,7 +117,7 @@ int main() {
 
       transform.rotation += deltaTime * 1.0f;
       model = transform.getModelMatrix();
-      view = camera.GetViewMatrix();
+      view = camera.getViewMatrix();
       projection = ft_math::perspective(
           ft_math::radians(camera.zoom),
           static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
@@ -143,11 +142,11 @@ int main() {
   return 0;
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
   static double lastX = SCR_WIDTH / 2.0;
   static double lastY = SCR_HEIGHT / 2.0;
 
@@ -167,11 +166,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
   lastX = xpos;
   lastY = ypos;
 
-  ctx->camera->ProcessMouseMovement(xoffset, yoffset);
+  ctx->camera->processMouseMovement(xoffset, yoffset);
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action,
-                           int mods) {
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
     ctx->isCameraLocked = !ctx->isCameraLocked;
@@ -181,13 +179,13 @@ void mouse_button_callback(GLFWwindow* window, int button, int action,
   }
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
-  ctx->camera->ProcessMouseScroll(yoffset);
+  ctx->camera->processMouseScroll(yoffset);
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action,
-                  int mods) {
+void keyCallback(GLFWwindow* window, int key, int scancode, int action,
+                 int mods) {
   (void)scancode;
   (void)mods;
 
@@ -217,17 +215,17 @@ void processInput(GLFWwindow* window, float deltaTime) {
 void processCameraInput(GLFWwindow* window, float deltaTime) {
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    ctx->camera->ProcessKeyboard(FORWARD, deltaTime);
+    ctx->camera->processKeyboard(FORWARD, deltaTime);
   else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    ctx->camera->ProcessKeyboard(BACKWARD, deltaTime);
+    ctx->camera->processKeyboard(BACKWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    ctx->camera->ProcessKeyboard(LEFT, deltaTime);
+    ctx->camera->processKeyboard(LEFT, deltaTime);
   else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    ctx->camera->ProcessKeyboard(RIGHT, deltaTime);
+    ctx->camera->processKeyboard(RIGHT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    ctx->camera->ProcessKeyboard(DOWN, deltaTime);
+    ctx->camera->processKeyboard(DOWN, deltaTime);
   else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    ctx->camera->ProcessKeyboard(UP, deltaTime);
+    ctx->camera->processKeyboard(UP, deltaTime);
 }
 
 void processObjectInput(GLFWwindow* window, float deltaTime) {

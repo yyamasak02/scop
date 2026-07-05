@@ -20,7 +20,7 @@ Mat4 translate(const ft_math::Vec3 vec);
 /**
  * Y軸回転
  */
-Mat4 rotate_y(const float angle);
+Mat4 rotateY(const float angle);
 /**
  * 透視投影行列を作成
  */
