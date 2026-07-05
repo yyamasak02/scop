@@ -57,14 +57,15 @@ ft_math::Mat4 Camera::getViewMatrix() {
   return m;
 }
 
-void Camera::processKeyboard(Camera_Movement direction, float deltaTime) {
+void Camera::processKeyboard(Movement::MovementValue direction,
+                             float deltaTime) {
   float velocity = this->movementSpeed * deltaTime;
-  if (direction == FORWARD) this->position += this->front * velocity;
-  if (direction == BACKWARD) this->position -= this->front * velocity;
-  if (direction == LEFT) this->position -= this->right * velocity;
-  if (direction == RIGHT) this->position += this->right * velocity;
-  if (direction == UP) this->position += this->up * velocity;
-  if (direction == DOWN) this->position -= this->up * velocity;
+  if (direction == Movement::FORWARD) this->position += this->front * velocity;
+  if (direction == Movement::BACKWARD) this->position -= this->front * velocity;
+  if (direction == Movement::LEFT) this->position -= this->right * velocity;
+  if (direction == Movement::RIGHT) this->position += this->right * velocity;
+  if (direction == Movement::UP) this->position += this->up * velocity;
+  if (direction == Movement::DOWN) this->position -= this->up * velocity;
 }
 
 void Camera::processMouseMovement(float xoffset, float yoffset,

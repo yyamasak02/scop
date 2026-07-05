@@ -3,11 +3,8 @@
 #include <glad/glad.h>
 
 #include "custom/Matrix.hpp"
+#include "custom/Movement.hpp"
 #include "custom/Vec.hpp"
-
-// Defines several possible options for camera movement. Used as abstraction to
-// stay away from window-system specific input methods
-enum Camera_Movement { FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN };
 
 // Default camera values
 const float YAW = -90.0f;
@@ -48,7 +45,7 @@ class Camera {
   // processes input received from any keyboard-like input system. Accepts input
   // parameter in the form of camera defined ENUM (to abstract it from windowing
   // systems)
-  void processKeyboard(Camera_Movement direction, float deltaTime);
+  void processKeyboard(Movement::MovementValue direction, float deltaTime);
 
   // processes input received from a mouse input system. Expects the offset
   // value in both the x and y direction.

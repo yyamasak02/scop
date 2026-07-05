@@ -218,17 +218,17 @@ void processInput(GLFWwindow* window, float deltaTime) {
 void processCameraInput(GLFWwindow* window, float deltaTime) {
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    ctx->camera->processKeyboard(FORWARD, deltaTime);
+    ctx->camera->processKeyboard(Movement::FORWARD, deltaTime);
   else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    ctx->camera->processKeyboard(BACKWARD, deltaTime);
+    ctx->camera->processKeyboard(Movement::BACKWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    ctx->camera->processKeyboard(LEFT, deltaTime);
+    ctx->camera->processKeyboard(Movement::LEFT, deltaTime);
   else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    ctx->camera->processKeyboard(RIGHT, deltaTime);
+    ctx->camera->processKeyboard(Movement::RIGHT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    ctx->camera->processKeyboard(DOWN, deltaTime);
+    ctx->camera->processKeyboard(Movement::DOWN, deltaTime);
   else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    ctx->camera->processKeyboard(UP, deltaTime);
+    ctx->camera->processKeyboard(Movement::UP, deltaTime);
 }
 
 void processObjectInput(GLFWwindow* window, float deltaTime) {
