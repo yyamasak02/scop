@@ -46,6 +46,7 @@ struct AppContext {
   Transform* transform;
   bool isCameraLocked = false;
   bool firstMouse = true;
+  bool textureMode = false;
   MotionMode::MotionModeValue motionMode = MotionMode::Camera;
 };
 
@@ -90,8 +91,6 @@ int main() {
 
     Texture tex("resources/awesomeface.bmp");
     float blendFactor = 0.0f;
-    bool textureMode = false;
-    bool tKeyWasPressed = false;
 
     ft_math::Mat4 model = transform.getModelMatrix();
     ft_math::Mat4 view = camera.getViewMatrix();
@@ -107,11 +106,7 @@ int main() {
       processInput(window, deltaTime);
       preTime = currentTime;
 
-      bool tKeyNow = glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS;
-      if (tKeyNow && !tKeyWasPressed) textureMode = !textureMode;
-      tKeyWasPressed = tKeyNow;
-
-      float target = textureMode ? 1.0f : 0.0f;
+      float target = ctx.textureMode ? 1.0f : 0.0f;
       blendFactor += (target - blendFactor) * deltaTime * 2.0f;
       glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -195,7 +190,6 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action,
   if (key == GLFW_KEY_TAB && action == GLFW_RELEASE) {
     if (ctx->motionMode == MotionMode::Camera) {
       ctx->motionMode = MotionMode::Object;
-      glfwSetWindowTitle(window, "scop - Mode: Object");
     } else if (ctx->motionMode == MotionMode::Object) {
       ctx->motionMode = MotionMode::Camera;
     }
@@ -203,6 +197,9 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action,
                                            MotionMode::toName(ctx->motionMode))
                                    .c_str());
   }
+
+  if (key == GLFW_KEY_T && action == GLFW_PRESS)
+    ctx->textureMode = !(ctx->textureMode);
 }
 
 void processInput(GLFWwindow* window, float deltaTime) {
