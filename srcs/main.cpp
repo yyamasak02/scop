@@ -4,7 +4,9 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
+#include <exception>
 #include <iostream>
+#include <stdexcept>
 
 #include "custom/Camera.hpp"
 #include "custom/Matrix.hpp"
@@ -53,97 +55,107 @@ struct AppContext {
   MotionMode motionMode = CAMERA;
 };
 
-int main() {
-  initialize();
-  GLFWwindow* window =
-      glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "scop", NULL, NULL);
-  if (window == NULL) {
-    std::cout << "Failed to create GLFW window" << std::endl;
-    glfwTerminate();
-    return -1;
-  }
-  glfwMakeContextCurrent(window);
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    std::cout << "Failed to initialize GLAD" << std::endl;
-    glfwTerminate();
-    return -1;
-  }
-  glEnable(GL_DEPTH_TEST);
+int main(int ac, char** av) {
+  GLFWwindow* window = nullptr;
 
-  {
-    Camera camera(ft_math::Vec3(5.0f, 0.0f, 0.0f),
-                  ft_math::Vec3(0.0f, 1.0f, 0.0f), 180.0f, 0.0f);
-    Transform transform = Transform(ft_math::Vec3(1.0f), 0.0f, 2.5f);
-    AppContext ctx{&camera, &transform};
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetWindowUserPointer(window, &ctx);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-    glfwSetKeyCallback(window, key_callback);
-    ObjData obj = loadObj("resources/42.obj");
-    Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
-    shader.use();
-    shader.setFloat("yMin", obj.yMin);
-    shader.setFloat("yMax", obj.yMax);
-    shader.setFloat("zMin", obj.zMin);
-    shader.setFloat("zMax", obj.zMax);
-    Mesh mesh;
-    mesh.upload(obj);
+  try {
+    initialize();
+    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "scop", NULL, NULL);
+    if (window == NULL) {
+      throw std::runtime_error("Failed to create GLFW window");
+    }
 
-    Texture tex("resources/awesomeface.bmp");
-    float blendFactor = 0.0f;
-    bool textureMode = false;
-    bool tKeyWasPressed = false;
+    glfwMakeContextCurrent(window);
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+      throw std::runtime_error("Failed to initialize GLAD");
+    }
+    glEnable(GL_DEPTH_TEST);
 
-    ft_math::Mat4 model = transform.getModelMatrix();
-    ft_math::Mat4 view = camera.GetViewMatrix();
-    ft_math::Mat4 projection = ft_math::perspective(
-        ft_math::radians(camera.zoom),
-        static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
-        100.0f);
+    {
+      Camera camera(ft_math::Vec3(5.0f, 0.0f, 0.0f),
+                    ft_math::Vec3(0.0f, 1.0f, 0.0f), 180.0f, 0.0f);
+      Transform transform = Transform(ft_math::Vec3(1.0f), 0.0f, 2.5f);
+      AppContext ctx{&camera, &transform};
+      glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+      glfwSetWindowUserPointer(window, &ctx);
+      glfwSetMouseButtonCallback(window, mouse_button_callback);
+      glfwSetCursorPosCallback(window, mouse_callback);
+      glfwSetScrollCallback(window, scroll_callback);
+      glfwSetKeyCallback(window, key_callback);
+      std::string objPath = "resources/42.obj";
+      if (ac > 1) objPath = av[1];
+      ObjData obj = loadObj(objPath);
+      Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
+      shader.use();
+      shader.setFloat("yMin", obj.yMin);
+      shader.setFloat("yMax", obj.yMax);
+      shader.setFloat("zMin", obj.zMin);
+      shader.setFloat("zMax", obj.zMax);
+      Mesh mesh;
+      mesh.upload(obj);
 
-    float preTime = glfwGetTime();
-    while (!glfwWindowShouldClose(window)) {
-      float currentTime = glfwGetTime();
-      float deltaTime = currentTime - preTime;
-      processInput(window, deltaTime);
-      preTime = currentTime;
+      Texture tex("resources/awesomeface.bmp");
+      float blendFactor = 0.0f;
+      bool textureMode = false;
+      bool tKeyWasPressed = false;
 
-      bool tKeyNow = glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS;
-      if (tKeyNow && !tKeyWasPressed) textureMode = !textureMode;
-      tKeyWasPressed = tKeyNow;
-
-      float target = textureMode ? 1.0f : 0.0f;
-      blendFactor += (target - blendFactor) * deltaTime * 2.0f;
-      glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-      transform.rotation += deltaTime * 1.0f;
-      model = transform.getModelMatrix();
-      view = camera.GetViewMatrix();
-      projection = ft_math::perspective(
+      ft_math::Mat4 model = transform.getModelMatrix();
+      ft_math::Mat4 view = camera.GetViewMatrix();
+      ft_math::Mat4 projection = ft_math::perspective(
           ft_math::radians(camera.zoom),
           static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
           100.0f);
 
-      tex.bind(0);
+      float preTime = glfwGetTime();
+      while (!glfwWindowShouldClose(window)) {
+        float currentTime = glfwGetTime();
+        float deltaTime = currentTime - preTime;
+        processInput(window, deltaTime);
+        preTime = currentTime;
 
-      shader.use();
-      shader.setMat4("model", model);
-      shader.setMat4("view", view);
-      shader.setMat4("projection", projection);
-      shader.setFloat("blendFactor", blendFactor);
-      shader.setInt("tex", 0);
+        bool tKeyNow = glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS;
+        if (tKeyNow && !tKeyWasPressed) textureMode = !textureMode;
+        tKeyWasPressed = tKeyNow;
 
-      mesh.draw();
+        float target = textureMode ? 1.0f : 0.0f;
+        blendFactor += (target - blendFactor) * deltaTime * 2.0f;
+        glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      glfwSwapBuffers(window);
-      glfwPollEvents();
+        transform.rotation += deltaTime * 1.0f;
+        model = transform.getModelMatrix();
+        view = camera.GetViewMatrix();
+        projection = ft_math::perspective(
+            ft_math::radians(camera.zoom),
+            static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT),
+            0.1f, 100.0f);
+
+        tex.bind(0);
+
+        shader.use();
+        shader.setMat4("model", model);
+        shader.setMat4("view", view);
+        shader.setMat4("projection", projection);
+        shader.setFloat("blendFactor", blendFactor);
+        shader.setInt("tex", 0);
+
+        mesh.draw();
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+      }
     }
+
+    glfwTerminate();
+    return 0;
+  } catch (const std::exception& e) {
+    std::cerr << "[ERROR] " << e.what() << std::endl;
+    if (window != nullptr) {
+      glfwDestroyWindow(window);
+    }
+    glfwTerminate();
+    return -1;
   }
-  glfwTerminate();
-  return 0;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
