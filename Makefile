@@ -7,9 +7,15 @@ PROGRAMS := scop
 SRCDIR := ./srcs
 INCDIR := ./includes
 
-INCLUDES := -I$(INCDIR)
+OS := $(shell uname)
 
-LIBS	 := -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lm
+ifeq ($(OS), Darwin)
+    INCLUDES := -I$(INCDIR) $(shell pkg-config --cflags glfw3)
+    LIBS     := $(shell pkg-config --libs glfw3) -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
+else
+    INCLUDES := -I$(INCDIR)
+    LIBS     := $(shell pkg-config --libs --static glfw3)
+endif
 
 OBJDIR := objs
 

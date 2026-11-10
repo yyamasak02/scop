@@ -30,6 +30,10 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 void initialize() {
+#ifdef __APPLE__
+  // Cocoa経由だとcwdが変更され相対パスが崩れるのでヒント追加
+  glfwInitHint(GLFW_COCOA_CHDIR_RESOURCES, GLFW_FALSE);
+#endif
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -78,7 +82,6 @@ int main() {
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetKeyCallback(window, key_callback);
     ObjData obj = loadObj("resources/42.obj");
-    // ObjData obj = loadObj("resources/teapot.obj");
     Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
     shader.use();
     shader.setFloat("yMin", obj.yMin);
