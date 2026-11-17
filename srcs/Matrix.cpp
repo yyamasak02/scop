@@ -42,7 +42,7 @@ Mat4 translate(const ft_math::Vec3 vec) {
   return m;
 }
 
-Mat4 rotate_y(const float angle) {
+Mat4 rotateY(const float angle) {
   Mat4 m(1.0f);
   m[0][0] = std::cos(angle);
   m[2][0] = std::sin(angle);

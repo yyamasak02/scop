@@ -1,108 +1,93 @@
+_This project has been created as part of the 42 curriculum by yyamasak._
+
 # scop
 
-OpenGL を使って `.obj` モデルを表示するための 42 プロジェクトです。
+## Description
 
-## ビルド
+scop は、OpenGL を使って Wavefront OBJ 形式（`.obj`）の 3D モデルを表示する 42 のプロジェクトです。
+
+**目的**
+
+- OpenGL の描画パイプライン（シェーダー、VBO/VAO、深度バッファ）を理解する
+- 行列計算（Model / View / Projection）を自前で実装する
+- `.obj` パーサーを自前で実装する（行列・シェーダー・`.obj` 用の外部ライブラリは使わない）
+
+**主な機能**
+
+- `.obj` ファイルの読み込みと表示（三角形でない面の三角形分割に対応）
+- 透視投影と隠面処理（深度バッファ／面カリング）
+- 面ごとに異なる色（グレーの濃淡）で表示
+- 中心軸を中心にした自動回転
+- キー操作で 3 軸方向に移動
+- キー操作でカラーとテクスチャを切り替え（フェードで滑らかに遷移）
+
+## Instructions
+
+### 必要なもの
+
+- C++ コンパイラ（例: `c++` / `clang++`、C++XX 対応）
+- OpenGL X.X 以上
+- <ウィンドウ／イベント管理ライブラリ（例: GLFW）>
+- make
+
+### インストール
 
 ```bash
-make
+# 例: Ubuntu
+sudo apt install <必要なパッケージ>
 ```
 
-生成物:
-
-- 実行ファイル: `./scop`
-- オブジェクト: `./objs/*.o`
-
-## 実行
-
-```bash
-./scop
-```
-
-期待される出力:
-
-```text
-Hello World
-```
-
-## よく使うコマンド
+### ビルド
 
 ```bash
 make        # ビルド
-make clean  # オブジェクト削除
+make clean  # オブジェクトファイルを削除
 make fclean # 実行ファイルも削除
-make re     # フルリビルド
+make re     # 最初からビルドし直す
 ```
 
-## ディレクトリ構成
+### 実行
 
-```text
-scop/
-├── includes/
-├── resources/
-├── srcs/
-│   └── main.cpp
-├── objs/
-├── Makefile
-└── README.md
+```bash
+./scop <path/to/model.obj>
+# 例
+./scop resources/42.obj
 ```
 
-## 次の実装候補
+### 操作方法
 
-1. ウィンドウ初期化と OpenGL コンテキスト作成
-2. `.obj` ローダー（頂点・法線・面）の実装
-3. MVP 行列（Model / View / Projection）の導入
-4. 描画ループとキーボード操作の追加
-5. エラーハンドリング・入力バリデーションの整備
+| キー      | 動作                        |
+| --------- | --------------------------- |
+| `W` / `S` | <例: Y 軸方向に移動>        |
+| `A` / `D` | <例: X 軸方向に移動>        |
+| `Q` / `E` | <例: Z 軸方向に移動>        |
+| `T`       | カラー ↔ テクスチャ切り替え |
+| `ESC`     | 終了                        |
 
-## 参考資料
+## Technical Choices
 
-- https://learnopengl.com/Getting-started/OpenGL
-- https://www.opengl-tutorial.org/jp/beginners-tutorials/tutorial-3-matrices/
-- https://manabitimes.jp/math/983
-- https://github.com/motatamota/scop
-- https://gist.github.com/zgock999/6c74f16ae4b1958e8b8977ec3d26deb5
-  - `.obj`ファイルは、wavefront OBJ形式である。
+- <採用したライブラリと理由>
+- <`.obj` パーサーの設計（頂点・法線・UV・面の扱い、三角形分割のアルゴリズム）>
+- <行列ライブラリの実装方針>
 
-## C++ Code Review Guidelines
+## Resources
 
-Act as a senior C++ engineer and review code for safety, performance, and modern standards.
+### 参考資料
 
-### 1. Standards and Safety
+- [LearnOpenGL – Getting started](https://learnopengl.com/Getting-started/OpenGL) — OpenGL の基礎（コンテキスト、シェーダー、バッファ）
+- [opengl-tutorial.org – Tutorial 3: Matrices](https://www.opengl-tutorial.org/jp/beginners-tutorials/tutorial-3-matrices/) — MVP 行列
+- [高校数学の美しい物語（manabitimes）](https://manabitimes.jp/math/983) — <参照した数学的内容>
+- [Wavefront OBJ 形式について（gist）](https://gist.github.com/zgock999/6c74f16ae4b1958e8b8977ec3d26deb5) — `.obj` のフォーマット仕様
+- [motatamota/scop](https://github.com/motatamota/scop) — <参考にした点（例: 全体構成）>
 
-- **Modern C++:** Prefer C++20/C++23 features where they improve clarity and safety (`std::span`, `std::string_view`, `auto`).
-- **Memory Safety:** Flag raw pointer ownership. Recommend RAII and smart pointers (`std::unique_ptr`, `std::shared_ptr`) when ownership is needed.
-- **Const Correctness:** Use `const`/`constexpr` wherever possible.
+### AI の使用について
 
-### 2. Resource Management
+AI（<ツール名、例: Claude>）を以下の用途で使用しました。
 
-- **Performance:** Avoid unnecessary copies; prefer `std::move` and pass-by-`const&` where appropriate.
-- **Containers:** Recommend containers based on access patterns (`std::vector`, maps, etc.).
+| 用途                                | 対象                       |
+| ----------------------------------- | -------------------------- |
+| <例: OpenGL や行列計算の概念の説明> | <例: MVP 行列、透視投影>   |
+| <例: コードレビュー>                | <例: `srcs/ObjLoader.cpp`> |
+| <例: README・ドキュメントの下書き>  | `README.md`                |
 
-### 3. Style and Maintainability
-
-- **Naming:** Follow a consistent style such as Google C++ Style or LLVM Coding Standards.
-- **Error Handling:** Prefer exceptions or `std::expected` (C++23) over ad-hoc error codes where practical.
-- **Header Files:** Use `#pragma once`; keep includes minimal and sorted.
-
-### 4. Feedback Format
-
-- Label each review item as one of:
-  - **[Blocking]**
-  - **[Important]**
-  - **[Suggestion]**
-  - **[Praise]**
-- Include:
-  1. A short explanation of **why**.
-  2. A concrete fix snippet.
-
-#### Example
-
-```cpp
-// [Important] Prefer std::span to avoid pointer/size mismatch bugs.
-void process(std::span<const int> values) {
-    for (const auto value : values) {
-        // ...
-    }
-}
-```
+<AI が生成したコードをそのまま使った部分の有無、使った場合はその範囲と、内容を理解・検証した方法を書く>

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(/srcs/**)",
+      "Edit(/includes/custom/**)",
+      "Edit(/learning/**)",
+      "Edit(/resources/**)",
+      "Edit(/Makefile)",
+      "Edit(/run.sh)"
+    ]
+  }
+}

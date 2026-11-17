@@ -11,20 +11,20 @@
 #include "custom/Camera.hpp"
 #include "custom/Matrix.hpp"
 #include "custom/Mesh.hpp"
+#include "custom/MotionMode.hpp"
 #include "custom/Shader.hpp"
 #include "custom/Texture.hpp"
 #include "custom/Transform.hpp"
 #include "custom/Vec.hpp"
 #include "custom/WaveFrontObjectLoader.hpp"
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void mouse_button_callback(GLFWwindow* window, int button, int action,
-                           int mods);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+void mouseCallback(GLFWwindow* window, double xpos, double ypos);
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+void keyCallback(GLFWwindow* window, int key, int scancode, int action,
+                 int mods);
 void processInput(GLFWwindow* window, float deltaTime);
-void key_callback(GLFWwindow* window, int key, int scancode, int action,
-                  int mods);
 void processCameraInput(GLFWwindow* window, float deltaTime);
 void processObjectInput(GLFWwindow* window, float deltaTime);
 
@@ -46,13 +46,13 @@ void initialize() {
 #endif
 }
 
-enum MotionMode { CAMERA, OBJECT };
 struct AppContext {
   Camera* camera;
   Transform* transform;
   bool isCameraLocked = false;
   bool firstMouse = true;
-  MotionMode motionMode = CAMERA;
+  bool textureMode = false;
+  MotionMode::MotionModeValue motionMode = MotionMode::Camera;
 };
 
 int main(int ac, char** av) {
@@ -158,11 +158,11 @@ int main(int ac, char** av) {
   }
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
   static double lastX = SCR_WIDTH / 2.0;
   static double lastY = SCR_HEIGHT / 2.0;
 
@@ -182,11 +182,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
   lastX = xpos;
   lastY = ypos;
 
-  ctx->camera->ProcessMouseMovement(xoffset, yoffset);
+  ctx->camera->processMouseMovement(xoffset, yoffset);
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action,
-                           int mods) {
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
     ctx->isCameraLocked = !ctx->isCameraLocked;
@@ -196,53 +195,57 @@ void mouse_button_callback(GLFWwindow* window, int button, int action,
   }
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
-  ctx->camera->ProcessMouseScroll(yoffset);
+  ctx->camera->processMouseScroll(yoffset);
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action,
-                  int mods) {
+void keyCallback(GLFWwindow* window, int key, int scancode, int action,
+                 int mods) {
   (void)scancode;
   (void)mods;
 
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
 
   if (key == GLFW_KEY_TAB && action == GLFW_RELEASE) {
-    if (ctx->motionMode == CAMERA) {
-      ctx->motionMode = OBJECT;
-      glfwSetWindowTitle(window, "scop - Mode: Object");
-    } else if (ctx->motionMode == OBJECT) {
-      ctx->motionMode = CAMERA;
-      glfwSetWindowTitle(window, "scop - Mode: Camera");
+    if (ctx->motionMode == MotionMode::Camera) {
+      ctx->motionMode = MotionMode::Object;
+    } else if (ctx->motionMode == MotionMode::Object) {
+      ctx->motionMode = MotionMode::Camera;
     }
+    glfwSetWindowTitle(window, std::format("scop - Mode: {}",
+                                           MotionMode::toName(ctx->motionMode))
+                                   .c_str());
   }
+
+  if (key == GLFW_KEY_T && action == GLFW_PRESS)
+    ctx->textureMode = !(ctx->textureMode);
 }
 
 void processInput(GLFWwindow* window, float deltaTime) {
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
-  if (ctx->motionMode == CAMERA)
+  if (ctx->motionMode == MotionMode::Camera)
     processCameraInput(window, deltaTime);
-  else if (ctx->motionMode == OBJECT)
+  else if (ctx->motionMode == MotionMode::Object)
     processObjectInput(window, deltaTime);
 }
 
 void processCameraInput(GLFWwindow* window, float deltaTime) {
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    ctx->camera->ProcessKeyboard(FORWARD, deltaTime);
+    ctx->camera->processKeyboard(Movement::FORWARD, deltaTime);
   else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    ctx->camera->ProcessKeyboard(BACKWARD, deltaTime);
+    ctx->camera->processKeyboard(Movement::BACKWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    ctx->camera->ProcessKeyboard(LEFT, deltaTime);
+    ctx->camera->processKeyboard(Movement::LEFT, deltaTime);
   else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    ctx->camera->ProcessKeyboard(RIGHT, deltaTime);
+    ctx->camera->processKeyboard(Movement::RIGHT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    ctx->camera->ProcessKeyboard(DOWN, deltaTime);
+    ctx->camera->processKeyboard(Movement::DOWN, deltaTime);
   else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    ctx->camera->ProcessKeyboard(UP, deltaTime);
+    ctx->camera->processKeyboard(Movement::UP, deltaTime);
 }
 
 void processObjectInput(GLFWwindow* window, float deltaTime) {

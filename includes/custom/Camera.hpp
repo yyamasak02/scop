@@ -3,11 +3,8 @@
 #include <glad/glad.h>
 
 #include "custom/Matrix.hpp"
+#include "custom/Movement.hpp"
 #include "custom/Vec.hpp"
-
-// Defines several possible options for camera movement. Used as abstraction to
-// stay away from window-system specific input methods
-enum Camera_Movement { FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN };
 
 // Default camera values
 const float YAW = -90.0f;
@@ -43,21 +40,21 @@ class Camera {
          float yaw, float pitch);
 
   // returns the view matrix calculated using Euler Angles and the LookAt Matrix
-  ft_math::Mat4 GetViewMatrix();
+  ft_math::Mat4 getViewMatrix();
 
   // processes input received from any keyboard-like input system. Accepts input
   // parameter in the form of camera defined ENUM (to abstract it from windowing
   // systems)
-  void ProcessKeyboard(Camera_Movement direction, float deltaTime);
+  void processKeyboard(Movement::MovementValue direction, float deltaTime);
 
   // processes input received from a mouse input system. Expects the offset
   // value in both the x and y direction.
-  void ProcessMouseMovement(float xoffset, float yoffset,
+  void processMouseMovement(float xoffset, float yoffset,
                             GLboolean constrainPitch = true);
 
   // processes input received from a mouse scroll-wheel event. Only requires
   // input on the vertical wheel-axis
-  void ProcessMouseScroll(float yoffset);
+  void processMouseScroll(float yoffset);
 
  private:
   // calculates the front vector from the Camera's (updated) Euler Angles

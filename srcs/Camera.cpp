@@ -32,7 +32,7 @@ Camera::Camera(float posX, float posY, float posZ, float upX, float upY,
   updateCameraVectors();
 }
 
-ft_math::Mat4 Camera::GetViewMatrix() {
+ft_math::Mat4 Camera::getViewMatrix() {
   ft_math::Vec3 zaxis = ft_math::normalize(-this->front);
   ft_math::Vec3 xaxis =
       ft_math::normalize(ft_math::cross(this->worldUp, zaxis));
@@ -57,17 +57,18 @@ ft_math::Mat4 Camera::GetViewMatrix() {
   return m;
 }
 
-void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
+void Camera::processKeyboard(Movement::MovementValue direction,
+                             float deltaTime) {
   float velocity = this->movementSpeed * deltaTime;
-  if (direction == FORWARD) this->position += this->front * velocity;
-  if (direction == BACKWARD) this->position -= this->front * velocity;
-  if (direction == LEFT) this->position -= this->right * velocity;
-  if (direction == RIGHT) this->position += this->right * velocity;
-  if (direction == UP) this->position += this->up * velocity;
-  if (direction == DOWN) this->position -= this->up * velocity;
+  if (direction == Movement::FORWARD) this->position += this->front * velocity;
+  if (direction == Movement::BACKWARD) this->position -= this->front * velocity;
+  if (direction == Movement::LEFT) this->position -= this->right * velocity;
+  if (direction == Movement::RIGHT) this->position += this->right * velocity;
+  if (direction == Movement::UP) this->position += this->up * velocity;
+  if (direction == Movement::DOWN) this->position -= this->up * velocity;
 }
 
-void Camera::ProcessMouseMovement(float xoffset, float yoffset,
+void Camera::processMouseMovement(float xoffset, float yoffset,
                                   GLboolean constrainPitch) {
   xoffset *= this->mouseSensitivity;
   yoffset *= this->mouseSensitivity;
@@ -85,7 +86,7 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset,
   updateCameraVectors();
 }
 
-void Camera::ProcessMouseScroll(float yoffset) {
+void Camera::processMouseScroll(float yoffset) {
   this->zoom -= static_cast<float>(yoffset);
   if (this->zoom < 1.0f) this->zoom = 1.0f;
   if (this->zoom > 45.0f) this->zoom = 45.0f;
