@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
-#include <exception>
+#include <format>
 #include <iostream>
 #include <stdexcept>
 #include <string>
