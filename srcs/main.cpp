@@ -7,6 +7,7 @@
 #include <exception>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 
 #include "custom/Camera.hpp"
 #include "custom/Matrix.hpp"
@@ -76,12 +77,12 @@ int main(int ac, char** av) {
                     ft_math::Vec3(0.0f, 1.0f, 0.0f), 180.0f, 0.0f);
       Transform transform = Transform(ft_math::Vec3(1.0f), 0.0f, 2.5f);
       AppContext ctx{&camera, &transform};
-      glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+      glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
       glfwSetWindowUserPointer(window, &ctx);
-      glfwSetMouseButtonCallback(window, mouse_button_callback);
-      glfwSetCursorPosCallback(window, mouse_callback);
-      glfwSetScrollCallback(window, scroll_callback);
-      glfwSetKeyCallback(window, key_callback);
+      glfwSetMouseButtonCallback(window, mouseButtonCallback);
+      glfwSetCursorPosCallback(window, mouseCallback);
+      glfwSetScrollCallback(window, scrollCallback);
+      glfwSetKeyCallback(window, keyCallback);
       std::string objPath = "resources/42.obj";
       if (ac > 1) objPath = av[1];
       ObjData obj = loadObj(objPath);
@@ -100,7 +101,7 @@ int main(int ac, char** av) {
       bool tKeyWasPressed = false;
 
       ft_math::Mat4 model = transform.getModelMatrix();
-      ft_math::Mat4 view = camera.GetViewMatrix();
+      ft_math::Mat4 view = camera.getViewMatrix();
       ft_math::Mat4 projection = ft_math::perspective(
           ft_math::radians(camera.zoom),
           static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
@@ -124,7 +125,7 @@ int main(int ac, char** av) {
 
         transform.rotation += deltaTime * 1.0f;
         model = transform.getModelMatrix();
-        view = camera.GetViewMatrix();
+        view = camera.getViewMatrix();
         projection = ft_math::perspective(
             ft_math::radians(camera.zoom),
             static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT),
@@ -213,9 +214,9 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action,
     } else if (ctx->motionMode == MotionMode::Object) {
       ctx->motionMode = MotionMode::Camera;
     }
-    glfwSetWindowTitle(window, std::format("scop - Mode: {}",
-                                           MotionMode::toName(ctx->motionMode))
-                                   .c_str());
+    const std::string title =
+        "scop - Mode: " + std::string(MotionMode::toName(ctx->motionMode));
+    glfwSetWindowTitle(window, title.c_str());
   }
 
   if (key == GLFW_KEY_T && action == GLFW_PRESS)

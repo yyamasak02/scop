@@ -53,4 +53,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re install $(PROGRAMS)
+.PHONY: all clean fclean re install
