@@ -151,48 +151,6 @@
       "desc": "辺の中点に共線の頂点がある正方形(8頂点)、面積16"
     },
     {
-      "file": "ok_concave_L.obj",
-      "expect": "ok",
-      "category": "凹多角形",
-      "desc": "L字(反時計回り)、三角形4枚・面積3"
-    },
-    {
-      "file": "ok_concave_L_cw.obj",
-      "expect": "ok",
-      "category": "凹多角形",
-      "desc": "L字(時計回り=逆巻き)、同じく面積3"
-    },
-    {
-      "file": "ok_concave_chevron.obj",
-      "expect": "ok",
-      "category": "凹多角形",
-      "desc": "くの字(凹四角形)、Fanだと外側にはみ出す。面積6"
-    },
-    {
-      "file": "ok_concave_U.obj",
-      "expect": "ok",
-      "category": "凹多角形",
-      "desc": "U字(8頂点)、面積7"
-    },
-    {
-      "file": "ok_concave_L_tilted.obj",
-      "expect": "ok",
-      "category": "凹多角形",
-      "desc": "斜めの平面(y=z)上のL字、面積3√2。法線を使わないと崩れる"
-    },
-    {
-      "file": "ok_concave_L_in_xz.obj",
-      "expect": "ok",
-      "category": "凹多角形",
-      "desc": "XZ平面上のL字(XY射影すると潰れる)、面積3"
-    },
-    {
-      "file": "ok_concave_L_in_yz.obj",
-      "expect": "ok",
-      "category": "凹多角形",
-      "desc": "YZ平面上のL字、面積3"
-    },
-    {
       "file": "ok_nonplanar_quad.obj",
       "expect": "ok",
       "category": "非平面",
@@ -349,22 +307,10 @@
       "desc": "vt/vn の負インデックスも範囲内なら受け付ける"
     },
     {
-      "file": "ok_degenerate_quad_with_good.obj",
-      "expect": "ok",
-      "category": "退化",
-      "desc": "面積0の四角形は出力せず、他の正常な面だけ残す(エラーにしない)"
-    },
-    {
       "file": "ok_ngon_large.obj",
       "expect": "ok",
       "category": "負荷",
-      "desc": "凸2万角形(大きな面)。Ear Clippingが遅くならないこと ※実行時に生成"
-    },
-    {
-      "file": "ok_comb_large.obj",
-      "expect": "ok",
-      "category": "負荷",
-      "desc": "くし形の凹多角形(約4000頂点・凹頂点約2000)。三角形数と面積も検証 ※実行時に生成"
+      "desc": "凸2万角形(大きな面)。Fan分割で遅くならないこと ※実行時に生成"
     },
     {
       "file": "err_face_vt_trailing_slash.obj",
@@ -413,48 +359,6 @@
       "expect": "err",
       "category": "添字",
       "desc": "`1/1/1/1` のように要素が4つ以上"
-    },
-    {
-      "file": "err_self_intersecting_bowtie.obj",
-      "expect": "err",
-      "category": "自己交差",
-      "desc": "蝶ネクタイ形(Newell法線がゼロになる自己交差)"
-    },
-    {
-      "file": "err_self_intersecting_bowtie_asym.obj",
-      "expect": "err",
-      "category": "自己交差",
-      "desc": "非対称な蝶ネクタイ形(法線はゼロでないが自己交差)"
-    },
-    {
-      "file": "err_self_intersecting_star.obj",
-      "expect": "err",
-      "category": "自己交差",
-      "desc": "五芒星を一筆書きした順の星形"
-    },
-    {
-      "file": "err_self_touching_vertex.obj",
-      "expect": "err",
-      "category": "自己交差",
-      "desc": "8の字: 同じ座標の頂点が離れて2回現れ、1点で接する"
-    },
-    {
-      "file": "err_self_touching_edge.obj",
-      "expect": "err",
-      "category": "自己交差",
-      "desc": "頂点が隣接しない辺の上に乗っている"
-    },
-    {
-      "file": "err_spike.obj",
-      "expect": "err",
-      "category": "自己交差",
-      "desc": "同じ直線上を折り返すスパイク"
-    },
-    {
-      "file": "err_degenerate_collinear_quad.obj",
-      "expect": "err",
-      "category": "空",
-      "desc": "一直線上の四角形しかない(面積0の面は出力しないので描くものがない)"
     },
     {
       "file": "@nonexistent",

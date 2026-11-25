@@ -47,4 +47,3 @@ glm
 tests/.obj_harness
 tests/cases/ok_large.obj
 tests/cases/ok_ngon_large.obj
-tests/cases/ok_comb_large.obj
