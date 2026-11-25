@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "custom/ImageLoader.hpp"
+#include "custom/Logger.hpp"
 
 namespace ft_image {
 
@@ -31,14 +32,14 @@ static uint16_t readU16(const unsigned char* p) {
 ImageData loadImage(const std::string& image_path) {
   std::ifstream file(image_path, std::ios::binary);
   if (!file.is_open()) {
-    std::cerr << "ERROR::TEXTURE::FILE_NOT_FOUND: " << image_path << std::endl;
+    Logger::error("texture file not found: " + image_path);
     return ImageData{};
   }
 
   unsigned char fileHeader[14];
   file.read(reinterpret_cast<char*>(fileHeader), 14);
   if (!file || fileHeader[0] != 'B' || fileHeader[1] != 'M') {
-    std::cerr << "ERROR::TEXTURE::NOT_A_BMP: " << image_path << std::endl;
+    Logger::error("texture is not a BMP: " + image_path);
     return ImageData{};
   }
   uint32_t dataOffset = readU32(fileHeader + 10);
@@ -47,15 +48,14 @@ ImageData loadImage(const std::string& image_path) {
   file.read(reinterpret_cast<char*>(dibSizeBytes), 4);
   uint32_t dibSize = readU32(dibSizeBytes);
   if (dibSize < 12) {
-    std::cerr << "ERROR::TEXTURE::INVALID_DIB_SIZE: " << image_path
-              << std::endl;
+    Logger::error("texture has invalid DIB size: " + image_path);
     return ImageData{};
   }
 
   std::vector<unsigned char> dib(dibSize - 4);
   file.read(reinterpret_cast<char*>(dib.data()), dibSize - 4);
   if (!file) {
-    std::cerr << "ERROR::TEXTURE::DIB_READ_FAILED: " << image_path << std::endl;
+    Logger::error("failed to read texture DIB header: " + image_path);
     return ImageData{};
   }
 
@@ -64,13 +64,12 @@ ImageData loadImage(const std::string& image_path) {
   uint16_t bpp = readU16(dib.data() + 10);
 
   if (w <= 0 || h == 0) {
-    std::cerr << "ERROR::TEXTURE::INVALID_DIMENSIONS: " << image_path
-              << std::endl;
+    Logger::error("texture has invalid dimensions: " + image_path);
     return ImageData{};
   }
   if (bpp != 24 && bpp != 32) {
-    std::cerr << "ERROR::TEXTURE::UNSUPPORTED_BPP (" << bpp
-              << "): " << image_path << std::endl;
+    Logger::error("texture has unsupported bpp (" + std::to_string(bpp) +
+                  "): " + image_path);
     return ImageData{};
   }
 
@@ -88,8 +87,7 @@ ImageData loadImage(const std::string& image_path) {
   std::vector<unsigned char> raw(rawSize);
   file.read(reinterpret_cast<char*>(raw.data()), rawSize);
   if (!file) {
-    std::cerr << "ERROR::TEXTURE::PIXEL_READ_FAILED: " << image_path
-              << std::endl;
+    Logger::error("failed to read texture pixels: " + image_path);
     return ImageData{};
   }
 

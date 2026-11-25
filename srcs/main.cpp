@@ -6,8 +6,11 @@
 
 #include <format>
 #include <iostream>
+#include <stdexcept>
+#include <string>
 
 #include "custom/Camera.hpp"
+#include "custom/Logger.hpp"
 #include "custom/Matrix.hpp"
 #include "custom/Mesh.hpp"
 #include "custom/MotionMode.hpp"
@@ -25,10 +28,14 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action,
                  int mods);
 void processInput(GLFWwindow* window, float deltaTime);
 void processCameraInput(GLFWwindow* window, float deltaTime);
+void printHelp();
 void processObjectInput(GLFWwindow* window, float deltaTime);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+// モデル用テクスチャをつなぐテクスチャユニット(GPUの差し込み口)の番号。
+// bind() とシェーダーの sampler2D への指定で同じ値を使う必要がある。
+const int MODEL_TEXTURE_UNIT = 0;
 
 void initialize() {
 #ifdef __APPLE__
@@ -51,98 +58,128 @@ struct AppContext {
   bool isCameraLocked = false;
   bool firstMouse = true;
   bool textureMode = false;
+  bool autoRotate = true;  // Rキーで切り替える自動回転のON/OFF
+  float aspect = static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT);
   MotionMode::MotionModeValue motionMode = MotionMode::Camera;
 };
 
-int main() {
-  initialize();
-  GLFWwindow* window =
-      glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "scop", NULL, NULL);
-  if (window == NULL) {
-    std::cout << "Failed to create GLFW window" << std::endl;
-    glfwTerminate();
-    return -1;
-  }
-  glfwMakeContextCurrent(window);
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    std::cout << "Failed to initialize GLAD" << std::endl;
-    glfwTerminate();
-    return -1;
-  }
-  glEnable(GL_DEPTH_TEST);
+int main(int ac, char** av) {
+  GLFWwindow* window = nullptr;
 
-  {
-    Camera camera(ft_math::Vec3(5.0f, 0.0f, 0.0f),
-                  ft_math::Vec3(0.0f, 1.0f, 0.0f), 180.0f, 0.0f);
-    Transform transform = Transform(ft_math::Vec3(1.0f), 0.0f, 2.5f);
-    AppContext ctx{&camera, &transform};
-    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
-    glfwSetWindowUserPointer(window, &ctx);
-    glfwSetMouseButtonCallback(window, mouseButtonCallback);
-    glfwSetCursorPosCallback(window, mouseCallback);
-    glfwSetScrollCallback(window, scrollCallback);
-    glfwSetKeyCallback(window, keyCallback);
-    ObjData obj = loadObj("resources/42.obj");
-    Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
-    shader.use();
-    shader.setFloat("yMin", obj.yMin);
-    shader.setFloat("yMax", obj.yMax);
-    shader.setFloat("zMin", obj.zMin);
-    shader.setFloat("zMax", obj.zMax);
-    Mesh mesh;
-    mesh.upload(obj);
+  try {
+    std::string objPath = "resources/42.obj";
+    if (ac > 1) objPath = av[1];
+    ObjData obj = WaveFrontObjectLoader::load(objPath);
 
-    Texture tex("resources/awesomeface.bmp");
-    float blendFactor = 0.0f;
-
-    ft_math::Mat4 model = transform.getModelMatrix();
-    ft_math::Mat4 view = camera.getViewMatrix();
-    ft_math::Mat4 projection = ft_math::perspective(
-        ft_math::radians(camera.zoom),
-        static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
-        100.0f);
-
-    float preTime = glfwGetTime();
-    while (!glfwWindowShouldClose(window)) {
-      float currentTime = glfwGetTime();
-      float deltaTime = currentTime - preTime;
-      processInput(window, deltaTime);
-      preTime = currentTime;
-
-      float target = ctx.textureMode ? 1.0f : 0.0f;
-      blendFactor += (target - blendFactor) * deltaTime * 2.0f;
-      glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-      transform.rotation += deltaTime * 1.0f;
-      model = transform.getModelMatrix();
-      view = camera.getViewMatrix();
-      projection = ft_math::perspective(
-          ft_math::radians(camera.zoom),
-          static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
-          100.0f);
-
-      tex.bind(0);
-
-      shader.use();
-      shader.setMat4("model", model);
-      shader.setMat4("view", view);
-      shader.setMat4("projection", projection);
-      shader.setFloat("blendFactor", blendFactor);
-      shader.setInt("tex", 0);
-
-      mesh.draw();
-
-      glfwSwapBuffers(window);
-      glfwPollEvents();
+    initialize();
+    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "scop", NULL, NULL);
+    if (window == NULL) {
+      throw std::runtime_error("Failed to create GLFW window");
     }
+
+    glfwMakeContextCurrent(window);
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+      throw std::runtime_error("Failed to initialize GLAD");
+    }
+    glEnable(GL_DEPTH_TEST);
+
+    {
+      Camera camera(ft_math::Vec3(5.0f, 0.0f, 0.0f),
+                    ft_math::Vec3(0.0f, 1.0f, 0.0f), 180.0f, 0.0f);
+      // モデルは原点中心に正規化済みなので、初期位置も原点(画面中央)
+      Transform transform = Transform(ft_math::Vec3(0.0f), 0.0f, 2.5f);
+      AppContext ctx{&camera, &transform};
+      glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+      glfwSetWindowUserPointer(window, &ctx);
+      glfwSetMouseButtonCallback(window, mouseButtonCallback);
+      glfwSetCursorPosCallback(window, mouseCallback);
+      glfwSetScrollCallback(window, scrollCallback);
+      glfwSetKeyCallback(window, keyCallback);
+      // モデル描画用: 面ごとの色とテクスチャを blendFactor で混ぜる
+      printHelp();  // 起動時にも操作一覧を出す
+      Shader shader("resources/glsl/model.vs", "resources/glsl/model.fs");
+      shader.use();
+      Mesh mesh;
+      mesh.upload(obj);
+
+      Texture tex("resources/awesomeface.bmp");
+      float blendFactor = 0.0f;
+      ft_math::Mat4 model = transform.getModelMatrix();
+      ft_math::Mat4 view = camera.getViewMatrix();
+      ft_math::Mat4 projection = ft_math::perspective(
+          ft_math::radians(camera.zoom), ctx.aspect, 0.1f, 100.0f);
+
+      float preTime = glfwGetTime();
+      while (!glfwWindowShouldClose(window)) {
+        float currentTime = glfwGetTime();
+        float deltaTime = currentTime - preTime;
+        processInput(window, deltaTime);
+        preTime = currentTime;
+
+        float target = ctx.textureMode ? 1.0f : 0.0f;
+        blendFactor += (target - blendFactor) * deltaTime * 2.0f;
+        glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        if (ctx.autoRotate) transform.rotation += deltaTime * 1.0f;
+        model = transform.getModelMatrix();
+        view = camera.getViewMatrix();
+        projection = ft_math::perspective(ft_math::radians(camera.zoom),
+                                          ctx.aspect, 0.1f, 100.0f);
+
+        tex.bind(MODEL_TEXTURE_UNIT);
+
+        shader.use();
+        shader.setMat4("model", model);
+        shader.setMat4("view", view);
+        shader.setMat4("projection", projection);
+        shader.setFloat("blendFactor", blendFactor);
+        shader.setInt("tex", MODEL_TEXTURE_UNIT);
+
+        mesh.draw();
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+      }
+    }
+
+    glfwTerminate();
+    return 0;
+  } catch (const std::exception& e) {
+    Logger::error(e.what());
+    if (window != nullptr) {
+      glfwDestroyWindow(window);
+    }
+    glfwTerminate();
+    return 1;
   }
-  glfwTerminate();
-  return 0;
+}
+
+void printHelp() {
+  Logger::info(
+      "=== scop controls ===\n"
+      "  Tab            : switch target (Camera / Object)\n"
+      "  W / S          : move forward / backward\n"
+      "  A / D          : move left / right\n"
+      "  Space / Shift  : move up / down\n"
+      "  Arrow Up/Down  : rotate around X axis (Object mode)\n"
+      "  Arrow Left/Right: rotate around Y axis (Object mode)\n"
+      "  Q / E          : rotate around Z axis (Object mode)\n"
+      "  R              : pause / resume auto rotation\n"
+      "  T              : toggle color / texture (fade)\n"
+      "  Mouse          : look around (left click: lock / unlock)\n"
+      "  Scroll         : zoom\n"
+      "  H              : show this help\n"
+      "  Esc            : quit");
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
+  // 投影行列の縦横比もウィンドウに合わせる(固定だとリサイズで歪む)。
+  // 最小化時は高さ0になるので0除算を避ける。
+  AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
+  if (ctx != nullptr && width > 0 && height > 0)
+    ctx->aspect = static_cast<float>(width) / static_cast<float>(height);
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
@@ -169,6 +206,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+  (void)mods;
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
     ctx->isCameraLocked = !ctx->isCameraLocked;
@@ -179,6 +217,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 }
 
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+  (void)xoffset;
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   ctx->camera->processMouseScroll(yoffset);
 }
@@ -196,13 +235,18 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action,
     } else if (ctx->motionMode == MotionMode::Object) {
       ctx->motionMode = MotionMode::Camera;
     }
-    glfwSetWindowTitle(window, std::format("scop - Mode: {}",
-                                           MotionMode::toName(ctx->motionMode))
-                                   .c_str());
+    const std::string title =
+        "scop - Mode: " + std::string(MotionMode::toName(ctx->motionMode));
+    glfwSetWindowTitle(window, title.c_str());
   }
 
   if (key == GLFW_KEY_T && action == GLFW_PRESS)
     ctx->textureMode = !(ctx->textureMode);
+  // R: 自動回転の停止/再開(ユーザーが自動回転を制御できる)
+  if (key == GLFW_KEY_R && action == GLFW_PRESS)
+    ctx->autoRotate = !(ctx->autoRotate);
+  // H: 操作一覧を標準出力に表示
+  if (key == GLFW_KEY_H && action == GLFW_PRESS) printHelp();
 }
 
 void processInput(GLFWwindow* window, float deltaTime) {
@@ -245,4 +289,19 @@ void processObjectInput(GLFWwindow* window, float deltaTime) {
     ctx->transform->move(-ctx->camera->up, deltaTime);
   else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     ctx->transform->move(ctx->camera->up, deltaTime);
+
+  // 3軸まわりの回転: ↑↓=X軸, ←→=Y軸, Q/E=Z軸
+  const float step = 1.5f * deltaTime;
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    ctx->transform->rotationX += step;
+  else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    ctx->transform->rotationX -= step;
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    ctx->transform->rotation += step;
+  else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    ctx->transform->rotation -= step;
+  if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    ctx->transform->rotationZ += step;
+  else if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    ctx->transform->rotationZ -= step;
 }

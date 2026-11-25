@@ -1,0 +1,13 @@
+mtllib foo.mtl
+o thing
+g group1
+usemtl mat
+s off
+v 0 0 0
+v 1 0 0
+v 0 1 0
+vn 0 0 1
+vt 0 0
+l 1 2
+p 1
+f 1 2 3

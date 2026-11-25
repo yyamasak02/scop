@@ -1,5 +1,5 @@
 CPP = c++
-CPP_FLAGS = -std=c++20 -DDEBUG
+CPP_FLAGS = -std=c++20 -Wall -Wextra -Werror -MMD -MP -DDEBUG
 
 # Programs to build
 PROGRAMS := scop
@@ -25,8 +25,15 @@ ALL_SRCS := $(shell find $(SRCDIR) -maxdepth 2 -name '*.cpp')
 all: $(PROGRAMS)
 
 # Root program (scop) uses .cpp files directly under srcs/
-scop: $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/*.cpp))
+OBJS := $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/*.cpp))
+
+# 実ファイル scop を成果物として扱う(.PHONY にしない)ので、
+# オブジェクトが更新されたときだけ再リンクされる
+scop: $(OBJS)
 	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
+
+# -MMD が出力するヘッダ依存(.d)を読み込み、.hpp の変更でも再ビルドされるようにする
+-include $(OBJS:.o=.d)
 
 $(OBJDIR):
 	@mkdir -p $(OBJDIR)
@@ -36,10 +43,13 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
 	@mkdir -p $(dir $@)
 	$(CPP) $(CPP_FLAGS) $(INCLUDES) -o $@ -c $<
 
+# root(コンテナ等)なら sudo は不要
+SUDO := $(if $(filter 0,$(shell id -u)),,sudo)
+
 install:
 	@echo "Installing system dependencies..."
-	sudo apt update
-	sudo apt install -y \
+	$(SUDO) apt update
+	$(SUDO) apt install -y \
 		libglfw3-dev \
 		libgl1-mesa-dev \
 		libx11-dev \
@@ -53,4 +63,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re install $(PROGRAMS)
+.PHONY: all clean fclean re install

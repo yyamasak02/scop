@@ -51,6 +51,24 @@ Mat4 rotateY(const float angle) {
   return m;
 }
 
+Mat4 rotateX(const float angle) {
+  Mat4 m(1.0f);
+  m[1][1] = std::cos(angle);
+  m[2][1] = -std::sin(angle);
+  m[1][2] = std::sin(angle);
+  m[2][2] = std::cos(angle);
+  return m;
+}
+
+Mat4 rotateZ(const float angle) {
+  Mat4 m(1.0f);
+  m[0][0] = std::cos(angle);
+  m[1][0] = -std::sin(angle);
+  m[0][1] = std::sin(angle);
+  m[1][1] = std::cos(angle);
+  return m;
+}
+
 Mat4 perspective(const float fovy, const float aspect, const float zNear,
                  const float zFar) {
   Mat4 m(0.0f);
