@@ -61,7 +61,6 @@ int main(int ac, char** av) {
   GLFWwindow* window = nullptr;
 
   try {
-    // 入力が不正ならウィンドウを開く前に失敗させる(エラーは下の catch で表示)
     std::string objPath = "resources/42.obj";
     if (ac > 1) objPath = av[1];
     ObjData obj = loadObj(objPath);
@@ -90,7 +89,8 @@ int main(int ac, char** av) {
       glfwSetCursorPosCallback(window, mouseCallback);
       glfwSetScrollCallback(window, scrollCallback);
       glfwSetKeyCallback(window, keyCallback);
-      Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
+      // モデル描画用: 面ごとの色とテクスチャを blendFactor で混ぜる
+      Shader shader("resources/glsl/model.vs", "resources/glsl/model.fs");
       shader.use();
       Mesh mesh;
       mesh.upload(obj);
@@ -100,8 +100,7 @@ int main(int ac, char** av) {
       ft_math::Mat4 model = transform.getModelMatrix();
       ft_math::Mat4 view = camera.getViewMatrix();
       ft_math::Mat4 projection = ft_math::perspective(
-          ft_math::radians(camera.zoom),
-          ctx.aspect, 0.1f, 100.0f);
+          ft_math::radians(camera.zoom), ctx.aspect, 0.1f, 100.0f);
 
       float preTime = glfwGetTime();
       while (!glfwWindowShouldClose(window)) {
@@ -118,9 +117,8 @@ int main(int ac, char** av) {
         if (transform.autoRotate) transform.rotation += deltaTime * 1.0f;
         model = transform.getModelMatrix();
         view = camera.getViewMatrix();
-        projection = ft_math::perspective(
-            ft_math::radians(camera.zoom),
-            ctx.aspect, 0.1f, 100.0f);
+        projection = ft_math::perspective(ft_math::radians(camera.zoom),
+                                          ctx.aspect, 0.1f, 100.0f);
 
         tex.bind(0);
 
