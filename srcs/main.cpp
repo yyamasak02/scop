@@ -33,6 +33,9 @@ void processObjectInput(GLFWwindow* window, float deltaTime);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+// モデル用テクスチャをつなぐテクスチャユニット(GPUの差し込み口)の番号。
+// bind() とシェーダーの sampler2D への指定で同じ値を使う必要がある。
+const int MODEL_TEXTURE_UNIT = 0;
 
 void initialize() {
 #ifdef __APPLE__
@@ -124,14 +127,14 @@ int main(int ac, char** av) {
         projection = ft_math::perspective(ft_math::radians(camera.zoom),
                                           ctx.aspect, 0.1f, 100.0f);
 
-        tex.bind(0);
+        tex.bind(MODEL_TEXTURE_UNIT);
 
         shader.use();
         shader.setMat4("model", model);
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
         shader.setFloat("blendFactor", blendFactor);
-        shader.setInt("tex", 0);
+        shader.setInt("tex", MODEL_TEXTURE_UNIT);
 
         mesh.draw();
 
