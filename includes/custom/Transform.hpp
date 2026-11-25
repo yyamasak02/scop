@@ -10,7 +10,6 @@ struct Transform {
   float rotationX = 0.0f;  // ユーザー操作によるX軸まわりの角度
   float rotationZ = 0.0f;  // ユーザー操作によるZ軸まわりの角度
   float movementSpeed;
-  bool autoRotate = true;  // Rキーで切り替える自動回転のON/OFF
   Transform(const ft_math::Vec3& position, const float rotation,
             const float movementSpeed);
 

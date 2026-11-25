@@ -7,12 +7,13 @@
 #include <string>
 
 #include "custom/ImageLoader.hpp"
+#include "custom/Logger.hpp"
 #include "custom/Texture.hpp"
 
 Texture::Texture(const std::string& imgPath) {
   ft_image::ImageData imgData = ft_image::loadImage(imgPath);
   if (imgData.data.empty()) {
-    std::cout << "Failed to load texture: " << imgPath << std::endl;
+    Logger::error("failed to load texture: " + imgPath);
     return;
   }
   glGenTextures(1, &this->ID);

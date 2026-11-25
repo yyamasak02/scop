@@ -10,6 +10,7 @@
 #include <string>
 
 #include "custom/Camera.hpp"
+#include "custom/Logger.hpp"
 #include "custom/Matrix.hpp"
 #include "custom/Mesh.hpp"
 #include "custom/MotionMode.hpp"
@@ -27,6 +28,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action,
                  int mods);
 void processInput(GLFWwindow* window, float deltaTime);
 void processCameraInput(GLFWwindow* window, float deltaTime);
+void printHelp();
 void processObjectInput(GLFWwindow* window, float deltaTime);
 
 const unsigned int SCR_WIDTH = 800;
@@ -53,6 +55,7 @@ struct AppContext {
   bool isCameraLocked = false;
   bool firstMouse = true;
   bool textureMode = false;
+  bool autoRotate = true;  // Rキーで切り替える自動回転のON/OFF
   float aspect = static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT);
   MotionMode::MotionModeValue motionMode = MotionMode::Camera;
 };
@@ -90,6 +93,7 @@ int main(int ac, char** av) {
       glfwSetScrollCallback(window, scrollCallback);
       glfwSetKeyCallback(window, keyCallback);
       // モデル描画用: 面ごとの色とテクスチャを blendFactor で混ぜる
+      printHelp();  // 起動時にも操作一覧を出す
       Shader shader("resources/glsl/model.vs", "resources/glsl/model.fs");
       shader.use();
       Mesh mesh;
@@ -114,7 +118,7 @@ int main(int ac, char** av) {
         glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (transform.autoRotate) transform.rotation += deltaTime * 1.0f;
+        if (ctx.autoRotate) transform.rotation += deltaTime * 1.0f;
         model = transform.getModelMatrix();
         view = camera.getViewMatrix();
         projection = ft_math::perspective(ft_math::radians(camera.zoom),
@@ -139,20 +143,38 @@ int main(int ac, char** av) {
     glfwTerminate();
     return 0;
   } catch (const std::exception& e) {
-    std::cerr << "[ERROR] " << e.what() << std::endl;
+    Logger::error(e.what());
     if (window != nullptr) {
       glfwDestroyWindow(window);
     }
     glfwTerminate();
     return 1;
   } catch (...) {
-    std::cerr << "[ERROR] unknown exception" << std::endl;
+    Logger::error("unknown exception");
     if (window != nullptr) {
       glfwDestroyWindow(window);
     }
     glfwTerminate();
     return 1;
   }
+}
+
+void printHelp() {
+  Logger::info(
+      "=== scop controls ===\n"
+      "  Tab            : switch target (Camera / Object)\n"
+      "  W / S          : move forward / backward\n"
+      "  A / D          : move left / right\n"
+      "  Space / Shift  : move up / down\n"
+      "  Arrow Up/Down  : rotate around X axis (Object mode)\n"
+      "  Arrow Left/Right: rotate around Y axis (Object mode)\n"
+      "  Q / E          : rotate around Z axis (Object mode)\n"
+      "  R              : pause / resume auto rotation\n"
+      "  T              : toggle color / texture (fade)\n"
+      "  Mouse          : look around (left click: lock / unlock)\n"
+      "  Scroll         : zoom\n"
+      "  H              : show this help\n"
+      "  Esc            : quit");
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
@@ -226,7 +248,9 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action,
     ctx->textureMode = !(ctx->textureMode);
   // R: 自動回転の停止/再開(ユーザーが自動回転を制御できる)
   if (key == GLFW_KEY_R && action == GLFW_PRESS)
-    ctx->transform->autoRotate = !(ctx->transform->autoRotate);
+    ctx->autoRotate = !(ctx->autoRotate);
+  // H: 操作一覧を標準出力に表示
+  if (key == GLFW_KEY_H && action == GLFW_PRESS) printHelp();
 }
 
 void processInput(GLFWwindow* window, float deltaTime) {
