@@ -12,6 +12,4 @@ struct ObjData {
   int vertexCount = 0;
 };
 
-// 不正な入力は std::runtime_error を投げる(呼び出し側で catch すること)。
-// 戻り値のモデルは、バウンディングボックスの中心が原点、最大辺が長さ2に正規化済み。
 ObjData loadObj(const std::string& path);

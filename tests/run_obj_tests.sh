@@ -26,6 +26,11 @@ $CXX -std=c++20 -g -O0 -fsanitize=address,undefined -fno-sanitize-recover=undefi
 # 負荷テスト用の大きなOBJはリポジトリに入れず、毎回生成する(3MB弱)
 [ -f tests/cases/ok_large.obj ] || awk 'BEGIN{for(i=0;i<100000;i++)printf "v %d %d %d\n",i%100,(i/100)%100,i%7; for(i=1;i<=99998;i++)printf "f %d %d %d\n",i,i+1,i+2}' > tests/cases/ok_large.obj
 
+# 大きな面の性能テスト(Ear Clipping・自己交差判定が O(n^2) 以上に遅くならないこと)
+[ -f tests/cases/ok_ngon_large.obj ] || awk 'BEGIN{n=20000; print "# EXPECT_TRIS " n-2; for(i=0;i<n;i++){a=6.283185307179586*i/n; printf "v %.9f %.9f 0\n",cos(a),sin(a)}; printf "f"; for(i=1;i<=n;i++) printf " %d",i; print ""}' > tests/cases/ok_ngon_large.obj
+# くし形: 底辺 (0,0)-(W,0) と、高さ1と2を往復するギザギザの上辺。面積 = 1.5W
+[ -f tests/cases/ok_comb_large.obj ] || awk 'BEGIN{W=4000; n=W+3; print "# EXPECT_TRIS " n-2; print "# EXPECT_AREA " 1.5*W; print "v 0 0 0"; print "v " W " 0 0"; for(x=W;x>=0;x--) printf "v %d %d 0\n",x,(x%2==0)?2:1; printf "f"; for(i=1;i<=n;i++) printf " %d",i; print ""}' > tests/cases/ok_comb_large.obj
+
 pass=0; fail=0; failed=()
 declare -A listed
 

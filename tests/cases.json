@@ -1,7 +1,7 @@
 {
   "_doc": [
     "expect: ok=例外なく読め結果が健全 / err=例外をcatchして拒否する",
-    "file: tests/cases/ 配下の .obj。@nonexistent / @directory / @empty は特殊パス",
+    "file: tests/cases/ 配下の .obj。@nonexistent / @directory / @empty は特殊パス。※実行時に生成 と書いたものは run_obj_tests.sh が作る",
     ".obj 内の '# EXPECT_TRIS n' / '# EXPECT_AREA x' で三角形数・合計面積も検証する",
     "ケース追加: .obj を置き、cases に1要素足す(未登録ファイルは実行時に失敗扱い)"
   ],
@@ -341,6 +341,120 @@
       "expect": "err",
       "category": "ファイル",
       "desc": "NULバイト区切りで頂点・面が連なる"
+    },
+    {
+      "file": "ok_face_negative_vt_vn.obj",
+      "expect": "ok",
+      "category": "添字",
+      "desc": "vt/vn の負インデックスも範囲内なら受け付ける"
+    },
+    {
+      "file": "ok_degenerate_quad_with_good.obj",
+      "expect": "ok",
+      "category": "退化",
+      "desc": "面積0の四角形は出力せず、他の正常な面だけ残す(エラーにしない)"
+    },
+    {
+      "file": "ok_ngon_large.obj",
+      "expect": "ok",
+      "category": "負荷",
+      "desc": "凸2万角形(大きな面)。Ear Clippingが遅くならないこと ※実行時に生成"
+    },
+    {
+      "file": "ok_comb_large.obj",
+      "expect": "ok",
+      "category": "負荷",
+      "desc": "くし形の凹多角形(約4000頂点・凹頂点約2000)。三角形数と面積も検証 ※実行時に生成"
+    },
+    {
+      "file": "err_face_vt_trailing_slash.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "`1/` のようにテクスチャ番号が空"
+    },
+    {
+      "file": "err_face_vt_not_number.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "`1/not-an-index` のようにテクスチャ番号が数字でない"
+    },
+    {
+      "file": "err_face_vt_out_of_range.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "テクスチャ番号が vt の数を超える"
+    },
+    {
+      "file": "err_face_vt_without_any_vt.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "vt が1つもないのにテクスチャ番号を参照"
+    },
+    {
+      "file": "err_face_vn_out_of_range.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "法線番号が vn の数を超える"
+    },
+    {
+      "file": "err_face_vn_empty.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "`1/1/` のように法線番号が空"
+    },
+    {
+      "file": "err_face_double_slash_only.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "`1//` のように法線番号が空"
+    },
+    {
+      "file": "err_face_too_many_slashes.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "`1/1/1/1` のように要素が4つ以上"
+    },
+    {
+      "file": "err_self_intersecting_bowtie.obj",
+      "expect": "err",
+      "category": "自己交差",
+      "desc": "蝶ネクタイ形(Newell法線がゼロになる自己交差)"
+    },
+    {
+      "file": "err_self_intersecting_bowtie_asym.obj",
+      "expect": "err",
+      "category": "自己交差",
+      "desc": "非対称な蝶ネクタイ形(法線はゼロでないが自己交差)"
+    },
+    {
+      "file": "err_self_intersecting_star.obj",
+      "expect": "err",
+      "category": "自己交差",
+      "desc": "五芒星を一筆書きした順の星形"
+    },
+    {
+      "file": "err_self_touching_vertex.obj",
+      "expect": "err",
+      "category": "自己交差",
+      "desc": "8の字: 同じ座標の頂点が離れて2回現れ、1点で接する"
+    },
+    {
+      "file": "err_self_touching_edge.obj",
+      "expect": "err",
+      "category": "自己交差",
+      "desc": "頂点が隣接しない辺の上に乗っている"
+    },
+    {
+      "file": "err_spike.obj",
+      "expect": "err",
+      "category": "自己交差",
+      "desc": "同じ直線上を折り返すスパイク"
+    },
+    {
+      "file": "err_degenerate_collinear_quad.obj",
+      "expect": "err",
+      "category": "空",
+      "desc": "一直線上の四角形しかない(面積0の面は出力しないので描くものがない)"
     },
     {
       "file": "@nonexistent",
