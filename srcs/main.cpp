@@ -69,7 +69,7 @@ int main(int ac, char** av) {
   try {
     std::string objPath = "resources/42.obj";
     if (ac > 1) objPath = av[1];
-    ObjData obj = loadObj(objPath);
+    ObjData obj = WaveFrontObjectLoader::load(objPath);
 
     initialize();
     window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "scop", NULL, NULL);

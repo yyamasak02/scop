@@ -1,4 +1,6 @@
 // Copyright [2026] yyamasak
+#include "custom/WaveFrontObjectLoader.hpp"
+
 #include <algorithm>
 #include <cerrno>
 #include <cmath>
@@ -10,9 +12,6 @@
 #include <vector>
 
 #include "custom/Vec.hpp"
-#include "custom/WaveFrontObjectLoader.hpp"
-
-namespace {
 
 using ft_math::Vec3;
 
@@ -23,12 +22,12 @@ using ft_math::Vec3;
 //  - 数値は strtof/strtoll で「トークン全体が数値か」まで確認する
 //    (std::stoi は "1.5" の ".5" を黙って捨てる、"1abc" も通すため使わない)。
 // ---------------------------------------------------------------------------
-void fail(const std::string& path, int lineNo,
-                       const std::string& msg) {
+void WaveFrontObjectLoader::fail(const std::string& path, int lineNo,
+                                 const std::string& msg) {
   throw std::runtime_error(path + ":" + std::to_string(lineNo) + ": " + msg);
 }
 
-bool parseFloat(const std::string& s, float* out) {
+bool WaveFrontObjectLoader::parseFloat(const std::string& s, float* out) {
   if (s.empty()) return false;
   char* end = nullptr;
   float v = std::strtof(s.c_str(), &end);
@@ -40,7 +39,8 @@ bool parseFloat(const std::string& s, float* out) {
 
 // 参照番号1つ("3", "-1")を0始まりの添字に変換する。
 // OBJは1始まり、負数は「その時点の要素数から数えて」。0や範囲外は不正。
-bool parseRef(const std::string& s, size_t count, int* out) {
+bool WaveFrontObjectLoader::parseRef(const std::string& s, size_t count,
+                                     int* out) {
   if (s.empty()) return false;
   errno = 0;
   char* end = nullptr;
@@ -63,8 +63,9 @@ bool parseRef(const std::string& s, size_t count, int* out) {
 // 面の1要素。受け付けるのは "v" / "v/vt" / "v//vn" / "v/vt/vn" の4形式だけ。
 // テクスチャ(vt)・法線(vn)番号は描画には使わないが、範囲まで検証する
 // ("1/", "1/x", "1/1/", "1/1/1/1" などは不正な面として拒否)。
-bool parseFaceToken(const std::string& token, size_t vCount, size_t vtCount,
-                    size_t vnCount, int* vertex) {
+bool WaveFrontObjectLoader::parseFaceToken(const std::string& token,
+                                           size_t vCount, size_t vtCount,
+                                           size_t vnCount, int* vertex) {
   std::vector<std::string> parts;
   size_t start = 0;
   while (true) {
@@ -90,8 +91,8 @@ bool parseFaceToken(const std::string& token, size_t vCount, size_t vtCount,
 
 // ---------------------------------------------------------------------------
 // 多角形の三角形分割
-//  Fan分割 (v0を起点に扇状) は凸多角形でしか正しくないので、Ear Clipping を使う。
-//  「耳(ear)」= 隣り合う3頂点がつくる三角形のうち、
+//  Fan分割 (v0を起点に扇状) は凸多角形でしか正しくないので、Ear Clipping
+//  を使う。 「耳(ear)」= 隣り合う3頂点がつくる三角形のうち、
 //   1. 凸(多角形の内側に折れている)で
 //   2. 内部・辺上に他の頂点を含まない
 //  もの。単純多角形(自己交差しない多角形)には必ず耳があり、
@@ -105,49 +106,37 @@ bool parseFaceToken(const std::string& token, size_t vCount, size_t vtCount,
 //   - 4頂点以上で面積0(一直線・同一点)の面は、描くものがないので出力しない
 //   - 自己交差・接触する面は拒否する(例外)
 // ---------------------------------------------------------------------------
-struct P2 {
-  double x;
-  double y;
-};
-
-struct Tri {
-  int a;
-  int b;
-  int c;
-};
-
-enum class FaceResult {
-  Ok,
-  Degenerate,        // 面積0。出力しない
-  SelfIntersecting,  // 自己交差・接触。拒否
-  NoEar,             // 耳が見つからない(数値的に壊れた多角形)。拒否
-};
-
-double cross2(const P2& a, const P2& b, const P2& c) {
+double WaveFrontObjectLoader::cross2(const P2& a, const P2& b, const P2& c) {
   return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
 }
 
-bool same(const P2& a, const P2& b) { return a.x == b.x && a.y == b.y; }
+bool WaveFrontObjectLoader::same(const P2& a, const P2& b) {
+  return a.x == b.x && a.y == b.y;
+}
 
-bool same3(const Vec3& a, const Vec3& b) {
+bool WaveFrontObjectLoader::same3(const Vec3& a, const Vec3& b) {
   return a.x == b.x && a.y == b.y && a.z == b.z;
 }
 
 // Newell法による多角形の法線(長さ = 面積の2倍)
-void newell(const std::vector<Vec3>& pos, const std::vector<int>& poly,
-            double nrm[3]) {
+void WaveFrontObjectLoader::newell(const std::vector<Vec3>& pos,
+                                   const std::vector<int>& poly,
+                                   double nrm[3]) {
   nrm[0] = nrm[1] = nrm[2] = 0.0;
   const size_t n = poly.size();
   for (size_t i = 0; i < n; ++i) {
     const Vec3& p = pos[poly[i]];
     const Vec3& q = pos[poly[(i + 1) % n]];
-    nrm[0] += (static_cast<double>(p.y) - q.y) * (static_cast<double>(p.z) + q.z);
-    nrm[1] += (static_cast<double>(p.z) - q.z) * (static_cast<double>(p.x) + q.x);
-    nrm[2] += (static_cast<double>(p.x) - q.x) * (static_cast<double>(p.y) + q.y);
+    nrm[0] +=
+        (static_cast<double>(p.y) - q.y) * (static_cast<double>(p.z) + q.z);
+    nrm[1] +=
+        (static_cast<double>(p.z) - q.z) * (static_cast<double>(p.x) + q.x);
+    nrm[2] +=
+        (static_cast<double>(p.x) - q.x) * (static_cast<double>(p.y) + q.y);
   }
 }
 
-int dominantAxis(const double nrm[3]) {
+int WaveFrontObjectLoader::dominantAxis(const double nrm[3]) {
   int axis = 2;  // 法線が求まらない(面積0)ときの既定
   double best = 0.0;
   for (int k = 0; k < 3; ++k) {
@@ -160,7 +149,8 @@ int dominantAxis(const double nrm[3]) {
 }
 
 // すべての頂点が一直線上(または同一点)にあるか
-bool allCollinear(const std::vector<Vec3>& pos, const std::vector<int>& poly) {
+bool WaveFrontObjectLoader::allCollinear(const std::vector<Vec3>& pos,
+                                         const std::vector<int>& poly) {
   const Vec3& p0 = pos[poly[0]];
   double lx = 0, ly = 0, lz = 0, best = 0;
   for (int i : poly) {
@@ -186,19 +176,21 @@ bool allCollinear(const std::vector<Vec3>& pos, const std::vector<int>& poly) {
 }
 
 // c が線分ab上にあるか(c は ab と同一直線上である前提)
-bool onSegment(const P2& a, const P2& b, const P2& c, double tol) {
+bool WaveFrontObjectLoader::onSegment(const P2& a, const P2& b, const P2& c,
+                                      double tol) {
   return std::min(a.x, b.x) - tol <= c.x && c.x <= std::max(a.x, b.x) + tol &&
          std::min(a.y, b.y) - tol <= c.y && c.y <= std::max(a.y, b.y) + tol;
 }
 
-int orient(const P2& a, const P2& b, const P2& c, double eps) {
+int WaveFrontObjectLoader::orient(const P2& a, const P2& b, const P2& c,
+                                  double eps) {
   const double v = cross2(a, b, c);
   return v > eps ? 1 : (v < -eps ? -1 : 0);
 }
 
 // 線分abとcdが交わるか接するか(端点の接触・同一直線上の重なりも含む)
-bool segmentsTouch(const P2& a, const P2& b, const P2& c, const P2& d,
-                   double eps, double tol) {
+bool WaveFrontObjectLoader::segmentsTouch(const P2& a, const P2& b, const P2& c,
+                                          const P2& d, double eps, double tol) {
   const int o1 = orient(a, b, c, eps), o2 = orient(a, b, d, eps);
   const int o3 = orient(c, d, a, eps), o4 = orient(c, d, b, eps);
   if (o1 * o2 < 0 && o3 * o4 < 0) return true;
@@ -212,7 +204,8 @@ bool segmentsTouch(const P2& a, const P2& b, const P2& c, const P2& d,
 // 単純多角形か(自己交差・接触・折り返しがないか)。
 // 全辺のペアを比べると O(n^2) で大きな面が遅くなるので、格子に辺を登録し、
 // 同じマスに入った辺どうしだけを比べる。
-bool isSimple(const std::vector<P2>& pt, double eps, double tol) {
+bool WaveFrontObjectLoader::isSimple(const std::vector<P2>& pt, double eps,
+                                     double tol) {
   const size_t n = pt.size();
 
   // 隣り合う辺の折り返し(a→b→aのようなスパイク)
@@ -233,7 +226,8 @@ bool isSimple(const std::vector<P2>& pt, double eps, double tol) {
     minY = std::min(minY, p.y);
     maxY = std::max(maxY, p.y);
   }
-  const int g = std::max(1, static_cast<int>(std::sqrt(static_cast<double>(n))));
+  const int g =
+      std::max(1, static_cast<int>(std::sqrt(static_cast<double>(n))));
   const double cw = std::max(maxX - minX, 1e-300) / g;
   const double ch = std::max(maxY - minY, 1e-300) / g;
   auto cellX = [&](double x) {
@@ -276,8 +270,9 @@ bool isSimple(const std::vector<P2>& pt, double eps, double tol) {
 //  - 耳の内側に入りうるのは凹頂点(と180°の頂点)だけなので、それだけと比べる
 //    (凸多角形ではほぼ O(n) で終わる)
 //  - 耳を切ったら先頭からやり直さず、その隣から探索を続ける
-bool earClip(const std::vector<P2>& pt, const std::vector<int>& poly,
-             double sign, double eps, std::vector<Tri>* out) {
+bool WaveFrontObjectLoader::earClip(const std::vector<P2>& pt,
+                                    const std::vector<int>& poly, double sign,
+                                    double eps, std::vector<Tri>* out) {
   const int n = static_cast<int>(pt.size());
   std::vector<int> prv(n), nxt(n);
   for (int i = 0; i < n; ++i) {
@@ -354,9 +349,9 @@ bool earClip(const std::vector<P2>& pt, const std::vector<int>& poly,
   return true;
 }
 
-FaceResult triangulate(const std::vector<Vec3>& pos,
-                       const std::vector<int>& face, std::vector<Tri>* out,
-                       int* axisOut) {
+WaveFrontObjectLoader::FaceResult WaveFrontObjectLoader::triangulate(
+    const std::vector<Vec3>& pos, const std::vector<int>& face,
+    std::vector<Tri>* out, int* axisOut) {
   double nrm[3];
 
   // 三角形は入力そのもの。分割も補正もせずに使う
@@ -410,8 +405,8 @@ FaceResult triangulate(const std::vector<Vec3>& pos,
     } else {
       pt[i] = {v.x, v.y};
     }
-    extent = std::max({extent, std::fabs(pt[i].x - pt[0].x),
-                       std::fabs(pt[i].y - pt[0].y)});
+    extent = std::max(
+        {extent, std::fabs(pt[i].x - pt[0].x), std::fabs(pt[i].y - pt[0].y)});
   }
   const double eps = 1e-12 * extent * extent;  // 外積(長さ^2)の許容誤差
   const double tol = 1e-9 * extent;            // 座標(長さ)の許容誤差
@@ -424,22 +419,20 @@ FaceResult triangulate(const std::vector<Vec3>& pos,
 }
 
 // 面ごとの色。隣り合う面が別の灰色になるよう、黄金比でばらけさせる(0.2〜0.75)。
-float faceGrey(size_t faceIndex) {
+float WaveFrontObjectLoader::faceGrey(size_t faceIndex) {
   double t = static_cast<double>(faceIndex) * 0.6180339887498949;
   t -= std::floor(t);
   return static_cast<float>(0.2 + 0.55 * t);
 }
 
-}  // namespace
-
-ObjData loadObj(const std::string& path) {
+ObjData WaveFrontObjectLoader::load(const std::string& path) {
   std::ifstream file(path);
   if (!file.is_open())
     throw std::runtime_error("Cannot open OBJ file: " + path);
 
   std::vector<Vec3> positions;
   size_t texCoordCount = 0;  // vt の数(面の vt 番号の範囲チェック用)
-  size_t normalCount = 0;    // vn の数(面の vn 番号の範囲チェック用)
+  size_t normalCount = 0;  // vn の数(面の vn 番号の範囲チェック用)
   std::vector<unsigned char> axes;  // 頂点ごとのUV射影軸
   ObjData data;
 

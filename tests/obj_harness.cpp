@@ -31,7 +31,7 @@ int main(int ac, char** av) {
     return 64;
   }
   try {
-    ObjData d = loadObj(av[1]);
+    ObjData d = WaveFrontObjectLoader::load(av[1]);
 
     if (d.vertexCount <= 0 || d.vertices.empty() || d.vertexCount % 3 != 0) {
       std::printf("BAD vertexCount=%d\n", d.vertexCount);
