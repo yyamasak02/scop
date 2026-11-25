@@ -22,6 +22,14 @@ Mat4 translate(const ft_math::Vec3 vec);
  */
 Mat4 rotateY(const float angle);
 /**
+ * X軸回転
+ */
+Mat4 rotateX(const float angle);
+/**
+ * Z軸回転
+ */
+Mat4 rotateZ(const float angle);
+/**
  * 透視投影行列を作成
  */
 Mat4 perspective(const float fovy, const float aspect, const float zNear,

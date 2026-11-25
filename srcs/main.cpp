@@ -53,6 +53,7 @@ struct AppContext {
   bool isCameraLocked = false;
   bool firstMouse = true;
   bool textureMode = false;
+  float aspect = static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT);
   MotionMode::MotionModeValue motionMode = MotionMode::Camera;
 };
 
@@ -60,6 +61,11 @@ int main(int ac, char** av) {
   GLFWwindow* window = nullptr;
 
   try {
+    // 入力が不正ならウィンドウを開く前に失敗させる(エラーは下の catch で表示)
+    std::string objPath = "resources/42.obj";
+    if (ac > 1) objPath = av[1];
+    ObjData obj = loadObj(objPath);
+
     initialize();
     window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "scop", NULL, NULL);
     if (window == NULL) {
@@ -75,7 +81,8 @@ int main(int ac, char** av) {
     {
       Camera camera(ft_math::Vec3(5.0f, 0.0f, 0.0f),
                     ft_math::Vec3(0.0f, 1.0f, 0.0f), 180.0f, 0.0f);
-      Transform transform = Transform(ft_math::Vec3(1.0f), 0.0f, 2.5f);
+      // モデルは原点中心に正規化済みなので、初期位置も原点(画面中央)
+      Transform transform = Transform(ft_math::Vec3(0.0f), 0.0f, 2.5f);
       AppContext ctx{&camera, &transform};
       glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
       glfwSetWindowUserPointer(window, &ctx);
@@ -83,29 +90,18 @@ int main(int ac, char** av) {
       glfwSetCursorPosCallback(window, mouseCallback);
       glfwSetScrollCallback(window, scrollCallback);
       glfwSetKeyCallback(window, keyCallback);
-      std::string objPath = "resources/42.obj";
-      if (ac > 1) objPath = av[1];
-      ObjData obj = loadObj(objPath);
       Shader shader("resources/glsl/sample.vs", "resources/glsl/sample.fs");
       shader.use();
-      shader.setFloat("yMin", obj.yMin);
-      shader.setFloat("yMax", obj.yMax);
-      shader.setFloat("zMin", obj.zMin);
-      shader.setFloat("zMax", obj.zMax);
       Mesh mesh;
       mesh.upload(obj);
 
       Texture tex("resources/awesomeface.bmp");
       float blendFactor = 0.0f;
-      bool textureMode = false;
-      bool tKeyWasPressed = false;
-
       ft_math::Mat4 model = transform.getModelMatrix();
       ft_math::Mat4 view = camera.getViewMatrix();
       ft_math::Mat4 projection = ft_math::perspective(
           ft_math::radians(camera.zoom),
-          static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f,
-          100.0f);
+          ctx.aspect, 0.1f, 100.0f);
 
       float preTime = glfwGetTime();
       while (!glfwWindowShouldClose(window)) {
@@ -114,22 +110,17 @@ int main(int ac, char** av) {
         processInput(window, deltaTime);
         preTime = currentTime;
 
-        bool tKeyNow = glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS;
-        if (tKeyNow && !tKeyWasPressed) textureMode = !textureMode;
-        tKeyWasPressed = tKeyNow;
-
-        float target = textureMode ? 1.0f : 0.0f;
+        float target = ctx.textureMode ? 1.0f : 0.0f;
         blendFactor += (target - blendFactor) * deltaTime * 2.0f;
         glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        transform.rotation += deltaTime * 1.0f;
+        if (transform.autoRotate) transform.rotation += deltaTime * 1.0f;
         model = transform.getModelMatrix();
         view = camera.getViewMatrix();
         projection = ft_math::perspective(
             ft_math::radians(camera.zoom),
-            static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT),
-            0.1f, 100.0f);
+            ctx.aspect, 0.1f, 100.0f);
 
         tex.bind(0);
 
@@ -155,12 +146,24 @@ int main(int ac, char** av) {
       glfwDestroyWindow(window);
     }
     glfwTerminate();
-    return -1;
+    return 1;
+  } catch (...) {
+    std::cerr << "[ERROR] unknown exception" << std::endl;
+    if (window != nullptr) {
+      glfwDestroyWindow(window);
+    }
+    glfwTerminate();
+    return 1;
   }
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
+  // 投影行列の縦横比もウィンドウに合わせる(固定だとリサイズで歪む)。
+  // 最小化時は高さ0になるので0除算を避ける。
+  AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
+  if (ctx != nullptr && width > 0 && height > 0)
+    ctx->aspect = static_cast<float>(width) / static_cast<float>(height);
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
@@ -187,6 +190,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+  (void)mods;
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
     ctx->isCameraLocked = !ctx->isCameraLocked;
@@ -197,6 +201,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 }
 
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+  (void)xoffset;
   AppContext* ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(window));
   ctx->camera->processMouseScroll(yoffset);
 }
@@ -221,6 +226,9 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action,
 
   if (key == GLFW_KEY_T && action == GLFW_PRESS)
     ctx->textureMode = !(ctx->textureMode);
+  // R: 自動回転の停止/再開(ユーザーが自動回転を制御できる)
+  if (key == GLFW_KEY_R && action == GLFW_PRESS)
+    ctx->transform->autoRotate = !(ctx->transform->autoRotate);
 }
 
 void processInput(GLFWwindow* window, float deltaTime) {
@@ -263,4 +271,19 @@ void processObjectInput(GLFWwindow* window, float deltaTime) {
     ctx->transform->move(-ctx->camera->up, deltaTime);
   else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     ctx->transform->move(ctx->camera->up, deltaTime);
+
+  // 3軸まわりの回転: ↑↓=X軸, ←→=Y軸, Q/E=Z軸
+  const float step = 1.5f * deltaTime;
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    ctx->transform->rotationX += step;
+  else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    ctx->transform->rotationX -= step;
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    ctx->transform->rotation += step;
+  else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    ctx->transform->rotation -= step;
+  if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    ctx->transform->rotationZ += step;
+  else if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    ctx->transform->rotationZ -= step;
 }

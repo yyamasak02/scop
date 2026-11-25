@@ -14,6 +14,8 @@ class Mesh {
  public:
   Mesh();
   ~Mesh();
+  Mesh(const Mesh&) = delete;  // VAO/VBOを所有するのでコピー禁止
+  Mesh& operator=(const Mesh&) = delete;
   void upload(ObjData& objData);
   void draw();
 };

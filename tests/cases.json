@@ -1,0 +1,364 @@
+{
+  "_doc": [
+    "expect: ok=例外なく読め結果が健全 / err=例外をcatchして拒否する",
+    "file: tests/cases/ 配下の .obj。@nonexistent / @directory / @empty は特殊パス",
+    ".obj 内の '# EXPECT_TRIS n' / '# EXPECT_AREA x' で三角形数・合計面積も検証する",
+    "ケース追加: .obj を置き、cases に1要素足す(未登録ファイルは実行時に失敗扱い)"
+  ],
+  "cases": [
+    {
+      "file": "ok_triangle.obj",
+      "expect": "ok",
+      "category": "基本",
+      "desc": "三角形1枚(最小の正常入力)"
+    },
+    {
+      "file": "ok_quad.obj",
+      "expect": "ok",
+      "category": "基本",
+      "desc": "四角形 → 三角形2枚に分割、面積1"
+    },
+    {
+      "file": "ok_pentagon_convex.obj",
+      "expect": "ok",
+      "category": "基本",
+      "desc": "凸五角形 → 三角形3枚"
+    },
+    {
+      "file": "ok_ngon_100.obj",
+      "expect": "ok",
+      "category": "基本",
+      "desc": "凸100角形 → 三角形98枚(大きなn角形)"
+    },
+    {
+      "file": "ok_large.obj",
+      "expect": "ok",
+      "category": "負荷",
+      "desc": "頂点10万・面10万個(遅さ・メモリ・ハングの確認)"
+    },
+    {
+      "file": "ok_comments_blank.obj",
+      "expect": "ok",
+      "category": "書式",
+      "desc": "コメント行・空行・空白だけの行が混ざる"
+    },
+    {
+      "file": "ok_crlf.obj",
+      "expect": "ok",
+      "category": "書式",
+      "desc": "改行が CRLF (Windows形式)"
+    },
+    {
+      "file": "ok_no_trailing_newline.obj",
+      "expect": "ok",
+      "category": "書式",
+      "desc": "最終行に改行がない"
+    },
+    {
+      "file": "ok_tabs_spaces.obj",
+      "expect": "ok",
+      "category": "書式",
+      "desc": "区切りがタブ・連続スペース・行末空白"
+    },
+    {
+      "file": "ok_unknown_directives.obj",
+      "expect": "ok",
+      "category": "書式",
+      "desc": "mtllib/o/g/usemtl/s/vn/vt/l/p など未対応の命令を無視する"
+    },
+    {
+      "file": "ok_slash_formats.obj",
+      "expect": "ok",
+      "category": "書式",
+      "desc": "f が v/vt, v//vn, v/vt/vn の3形式混在"
+    },
+    {
+      "file": "ok_vertex_w_and_color.obj",
+      "expect": "ok",
+      "category": "書式",
+      "desc": "v が4成分(w付き)・6成分(色付き)でも先頭3つを使う"
+    },
+    {
+      "file": "ok_scientific.obj",
+      "expect": "ok",
+      "category": "書式",
+      "desc": "数値が指数表記 (1e0, 1E-1, 2.5e-1, +)"
+    },
+    {
+      "file": "ok_face_before_later_vertices.obj",
+      "expect": "ok",
+      "category": "書式",
+      "desc": "面の後ろに未使用の頂点が続く"
+    },
+    {
+      "file": "ok_negative_index.obj",
+      "expect": "ok",
+      "category": "添字",
+      "desc": "負のインデックス(-1が直前の頂点)"
+    },
+    {
+      "file": "ok_negative_after_second_object.obj",
+      "expect": "ok",
+      "category": "添字",
+      "desc": "面の途中で頂点が増えた後の負インデックスは「その時点」基準"
+    },
+    {
+      "file": "ok_multiple_objects.obj",
+      "expect": "ok",
+      "category": "添字",
+      "desc": "o が複数あり、頂点番号がオブジェクトをまたいで通し番号"
+    },
+    {
+      "file": "ok_huge_coords.obj",
+      "expect": "ok",
+      "category": "数値",
+      "desc": "座標が1e18(重心計算でオーバーフローしない)"
+    },
+    {
+      "file": "ok_tiny_coords.obj",
+      "expect": "ok",
+      "category": "数値",
+      "desc": "座標が1e-18(範囲の割り算で0除算にならない)"
+    },
+    {
+      "file": "ok_flat_y.obj",
+      "expect": "ok",
+      "category": "数値",
+      "desc": "全頂点のyが同じ(yMax-yMin=0 → 色がNaNにならない)"
+    },
+    {
+      "file": "ok_flat_z.obj",
+      "expect": "ok",
+      "category": "数値",
+      "desc": "全頂点のzが同じ(UV正規化で0除算にならない)"
+    },
+    {
+      "file": "ok_degenerate_triangle.obj",
+      "expect": "ok",
+      "category": "退化",
+      "desc": "一直線上の三角形・同一点の三角形(面積0)があっても壊れない"
+    },
+    {
+      "file": "ok_repeated_first_vertex.obj",
+      "expect": "ok",
+      "category": "退化",
+      "desc": "先頭頂点を末尾にも書いた四角形(f 1 2 3 4 1)、面積1"
+    },
+    {
+      "file": "ok_collinear_square.obj",
+      "expect": "ok",
+      "category": "退化",
+      "desc": "辺の中点に共線の頂点がある正方形(8頂点)、面積16"
+    },
+    {
+      "file": "ok_concave_L.obj",
+      "expect": "ok",
+      "category": "凹多角形",
+      "desc": "L字(反時計回り)、三角形4枚・面積3"
+    },
+    {
+      "file": "ok_concave_L_cw.obj",
+      "expect": "ok",
+      "category": "凹多角形",
+      "desc": "L字(時計回り=逆巻き)、同じく面積3"
+    },
+    {
+      "file": "ok_concave_chevron.obj",
+      "expect": "ok",
+      "category": "凹多角形",
+      "desc": "くの字(凹四角形)、Fanだと外側にはみ出す。面積6"
+    },
+    {
+      "file": "ok_concave_U.obj",
+      "expect": "ok",
+      "category": "凹多角形",
+      "desc": "U字(8頂点)、面積7"
+    },
+    {
+      "file": "ok_concave_L_tilted.obj",
+      "expect": "ok",
+      "category": "凹多角形",
+      "desc": "斜めの平面(y=z)上のL字、面積3√2。法線を使わないと崩れる"
+    },
+    {
+      "file": "ok_concave_L_in_xz.obj",
+      "expect": "ok",
+      "category": "凹多角形",
+      "desc": "XZ平面上のL字(XY射影すると潰れる)、面積3"
+    },
+    {
+      "file": "ok_concave_L_in_yz.obj",
+      "expect": "ok",
+      "category": "凹多角形",
+      "desc": "YZ平面上のL字、面積3"
+    },
+    {
+      "file": "ok_nonplanar_quad.obj",
+      "expect": "ok",
+      "category": "非平面",
+      "desc": "同一平面にない四角形でも三角形2枚に分割できる"
+    },
+    {
+      "file": "err_empty_file.obj",
+      "expect": "err",
+      "category": "空",
+      "desc": "0バイトのファイル"
+    },
+    {
+      "file": "err_only_comments.obj",
+      "expect": "err",
+      "category": "空",
+      "desc": "コメントと空行しかない"
+    },
+    {
+      "file": "err_vertices_no_faces.obj",
+      "expect": "err",
+      "category": "空",
+      "desc": "頂点だけで面が1つもない(描画するものがない)"
+    },
+    {
+      "file": "err_no_vertices_with_face.obj",
+      "expect": "err",
+      "category": "空",
+      "desc": "頂点がないのに面がある"
+    },
+    {
+      "file": "err_face_empty.obj",
+      "expect": "err",
+      "category": "空",
+      "desc": "`f` だけで頂点指定がない"
+    },
+    {
+      "file": "err_face_single.obj",
+      "expect": "err",
+      "category": "空",
+      "desc": "1頂点だけの面(面を作れない)"
+    },
+    {
+      "file": "err_face_too_few.obj",
+      "expect": "err",
+      "category": "空",
+      "desc": "2頂点だけの面(面を作れない)"
+    },
+    {
+      "file": "err_face_out_of_range.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "存在しない頂点番号(f 1 2 99)"
+    },
+    {
+      "file": "err_face_index_zero.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "インデックス0(OBJは1始まり)"
+    },
+    {
+      "file": "err_negative_too_large.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "負インデックスが頂点数より大きい"
+    },
+    {
+      "file": "err_face_before_vertex.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "頂点を定義する前に面が参照している"
+    },
+    {
+      "file": "err_face_index_huge.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "99999999999(intに収まらない)"
+    },
+    {
+      "file": "err_face_index_int_overflow.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "2147483648(INT_MAX+1)"
+    },
+    {
+      "file": "err_face_int_min.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "-2147483648(INT_MIN。符号反転で未定義動作になりやすい)"
+    },
+    {
+      "file": "err_face_float_index.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "小数のインデックス(f 1.5 2 3)"
+    },
+    {
+      "file": "err_face_non_numeric.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "数字でないインデックス(f a b c)"
+    },
+    {
+      "file": "err_face_slash_only.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "スラッシュだけの要素(f / / /)"
+    },
+    {
+      "file": "err_one_bad_face_among_good.obj",
+      "expect": "err",
+      "category": "添字",
+      "desc": "正常な面の途中に不正な面が1つだけある(部分成功にしない)"
+    },
+    {
+      "file": "err_vertex_missing_coord.obj",
+      "expect": "err",
+      "category": "頂点",
+      "desc": "座標が2つしかない(v 1 0)"
+    },
+    {
+      "file": "err_vertex_only_x.obj",
+      "expect": "err",
+      "category": "頂点",
+      "desc": "座標が1つしかない(v 1)"
+    },
+    {
+      "file": "err_vertex_non_numeric.obj",
+      "expect": "err",
+      "category": "頂点",
+      "desc": "座標が数字でない(v a b c)"
+    },
+    {
+      "file": "err_vertex_nan_inf.obj",
+      "expect": "err",
+      "category": "頂点",
+      "desc": "座標が nan / inf"
+    },
+    {
+      "file": "err_binary_garbage.obj",
+      "expect": "err",
+      "category": "ファイル",
+      "desc": "ランダムなバイナリ4KB"
+    },
+    {
+      "file": "err_nul_bytes.obj",
+      "expect": "err",
+      "category": "ファイル",
+      "desc": "NULバイト区切りで頂点・面が連なる"
+    },
+    {
+      "file": "@nonexistent",
+      "expect": "err",
+      "category": "パス",
+      "desc": "存在しないパス"
+    },
+    {
+      "file": "@directory",
+      "expect": "err",
+      "category": "パス",
+      "desc": "パスがディレクトリ"
+    },
+    {
+      "file": "@empty",
+      "expect": "err",
+      "category": "パス",
+      "desc": "パスが空文字"
+    }
+  ]
+}

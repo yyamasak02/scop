@@ -61,6 +61,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
   glDeleteShader(vertex);
   glDeleteShader(fragment);
 }
+Shader::~Shader() { glDeleteProgram(this->ID); }  // ID=0 は無視される
 void Shader::use() const { glUseProgram(this->ID); }
 void Shader::setBool(const std::string& name, bool value) const {
   glUniform1i(glGetUniformLocation(this->ID, name.c_str()),

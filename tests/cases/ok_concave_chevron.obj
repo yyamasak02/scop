@@ -1,0 +1,7 @@
+# EXPECT_AREA 6
+# EXPECT_TRIS 2
+v 0 0 0
+v 2 1 0
+v 4 0 0
+v 2 4 0
+f 1 2 3 4

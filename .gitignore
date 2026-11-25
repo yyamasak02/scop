@@ -44,3 +44,5 @@ glm
 
 # debug information files
 *.dwo
+tests/.obj_harness
+tests/cases/ok_large.obj
