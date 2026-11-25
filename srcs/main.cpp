@@ -152,13 +152,6 @@ int main(int ac, char** av) {
     }
     glfwTerminate();
     return 1;
-  } catch (...) {
-    Logger::error("unknown exception");
-    if (window != nullptr) {
-      glfwDestroyWindow(window);
-    }
-    glfwTerminate();
-    return 1;
   }
 }
 
